@@ -24,10 +24,10 @@
         {
           "id": 3,
           "description": "Refactor crawler.py into a clean base BaseCrawler class: extract rate limiting, session management, dedup, error handling, JSONL output. Make it importable and subclassable. Remove the BeautifulSoup demo code at top of file.",
-          "done": false,
+          "done": true,
           "skipped": false,
-          "attempts": 0,
-          "duration_sec": null
+          "attempts": 1,
+          "duration_sec": 120
         }
       ]
     },
