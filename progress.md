@@ -41,6 +41,8 @@ Started: 2026-04-09
 
 - **Task 18**: Added `plot_experience_requirements()` to charts.py. Two-subplot figure: (1) histogram of min_yoe across all ML/Research roles with median line; (2) box plot of min_yoe distributions for top 10 companies by YoE data points. Both subplots handle empty data gracefully. Wired into `main()`. Saves to output/experience_requirements.png at 150 DPI. Tested with synthetic data (50 roles, 11 companies) — renders correctly. Files: charts.py, tasks.json
 
+- **Task 19**: Added two new charts to charts.py: (1) `plot_role_landscape_sunburst()` — interactive Plotly sunburst with hierarchy category → company → role type → top 5 skills, saved as output/role_landscape.html; (2) `plot_roles_by_company()` — matplotlib bar chart of ML/Research role count per company, saved as output/roles_by_company.png. Both wired into `main()`. Tested with synthetic data (60 roles, 5 companies) — renders correctly. Files: charts.py, tasks.json
+
 ## Known Issues
 - Cohere, Character.ai Greenhouse slugs return 404 — may have changed ATS platforms
 - Runway Lever slug (runwayml) returns 404

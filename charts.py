@@ -316,6 +316,149 @@ def plot_experience_requirements(
     return output_path
 
 
+def plot_role_landscape_sunburst(
+    data: list[dict[str, Any]],
+    top_n_skills: int = 5,
+    output_path: Path | None = None,
+) -> Path:
+    """Interactive sunburst: category > company > role type > top skills.
+
+    Saves as output/role_landscape.html.
+    """
+    import plotly.graph_objects as go
+
+    if output_path is None:
+        output_path = Path(OUTPUT_DIR) / "role_landscape.html"
+
+    ids: list[str] = []
+    labels: list[str] = []
+    parents: list[str] = []
+    values: list[int] = []
+
+    # Group data: category -> company -> role_type -> skills
+    from collections import Counter
+
+    cat_comp: dict[str, dict[str, list[dict]]] = defaultdict(lambda: defaultdict(list))
+    for row in data:
+        cat = row.get("category") or "Unknown"
+        company = row.get("company") or "Unknown"
+        cat_comp[cat][company].append(row)
+
+    # Root level: categories
+    for cat, companies in sorted(cat_comp.items()):
+        cat_total = sum(len(roles) for roles in companies.values())
+        cat_id = cat
+        ids.append(cat_id)
+        labels.append(cat)
+        parents.append("")
+        values.append(cat_total)
+
+        for company, roles in sorted(companies.items(), key=lambda kv: -len(kv[1])):
+            comp_id = f"{cat}/{company}"
+            ids.append(comp_id)
+            labels.append(company)
+            parents.append(cat_id)
+            values.append(len(roles))
+
+            # Group by role type
+            rt_groups: dict[str, list[dict]] = defaultdict(list)
+            for r in roles:
+                rt = classify_role_type(r.get("title", ""))
+                rt_groups[rt].append(r)
+
+            for rt, rt_roles in sorted(rt_groups.items(), key=lambda kv: -len(kv[1])):
+                rt_id = f"{cat}/{company}/{rt}"
+                ids.append(rt_id)
+                labels.append(rt)
+                parents.append(comp_id)
+                values.append(len(rt_roles))
+
+                # Top skills for this group
+                skill_counter: Counter[str] = Counter()
+                for r in rt_roles:
+                    skills_raw = r.get("skills")
+                    if skills_raw:
+                        sk = json.loads(skills_raw) if isinstance(skills_raw, str) else skills_raw
+                        for s in sk:
+                            skill_counter[s] += 1
+
+                for skill, count in skill_counter.most_common(top_n_skills):
+                    skill_id = f"{cat}/{company}/{rt}/{skill}"
+                    ids.append(skill_id)
+                    labels.append(skill)
+                    parents.append(rt_id)
+                    values.append(count)
+
+    if not ids:
+        print("No data for sunburst.")
+        return output_path
+
+    fig = go.Figure(go.Sunburst(
+        ids=ids,
+        labels=labels,
+        parents=parents,
+        values=values,
+        branchvalues="total",
+        maxdepth=3,
+        insidetextorientation="radial",
+    ))
+
+    fig.update_layout(
+        title="ML/Research Role Landscape<br><sub>Category → Company → Role Type → Top Skills</sub>",
+        width=900,
+        height=900,
+        margin=dict(t=80, l=10, r=10, b=10),
+    )
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    fig.write_html(str(output_path))
+    print(f"Saved: {output_path}")
+    return output_path
+
+
+def plot_roles_by_company(
+    data: list[dict[str, Any]],
+    output_path: Path | None = None,
+) -> Path:
+    """Bar chart of ML/Research role count by company. Saved as output/roles_by_company.png."""
+    if output_path is None:
+        output_path = Path(OUTPUT_DIR) / "roles_by_company.png"
+
+    company_counts: dict[str, int] = defaultdict(int)
+    for row in data:
+        company_counts[row.get("company", "Unknown")] += 1
+
+    if not company_counts:
+        print("No data for roles by company chart.")
+        return output_path
+
+    sorted_companies = sorted(company_counts.items(), key=lambda kv: kv[1], reverse=True)
+    names = [c[0] for c in sorted_companies]
+    counts = [c[1] for c in sorted_companies]
+
+    fig, ax = plt.subplots(figsize=(max(10, len(names) * 0.5), 6))
+    bars = ax.bar(range(len(names)), counts, color="#4C72B0", edgecolor="white", linewidth=0.5)
+
+    for bar, count in zip(bars, counts):
+        ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.3,
+                str(count), ha="center", va="bottom", fontsize=9)
+
+    ax.set_xticks(range(len(names)))
+    ax.set_xticklabels(names, rotation=45, ha="right", fontsize=9)
+    ax.set_ylabel("Number of ML/Research Roles", fontsize=12)
+    ax.set_title("ML/Research Role Count by Company", fontsize=14, fontweight="bold")
+    ax.yaxis.grid(True, linestyle="--", alpha=0.5)
+    ax.set_axisbelow(True)
+    ax.set_ylim(0, max(counts) * 1.15 if counts else 1)
+
+    fig.tight_layout()
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(output_path, dpi=150, bbox_inches="tight")
+    plt.close(fig)
+    print(f"Saved: {output_path}")
+    return output_path
+
+
 def main() -> None:
     """Generate all charts."""
     conn = get_connection()
@@ -325,6 +468,8 @@ def main() -> None:
     plot_company_skill_heatmap(data)
     plot_degree_requirements(data)
     plot_experience_requirements(data)
+    plot_role_landscape_sunburst(data)
+    plot_roles_by_company(data)
     conn.close()
 
 

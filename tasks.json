@@ -172,10 +172,10 @@
         {
           "id": 19,
           "description": "Add chart: interactive sunburst (plotly) \u2014 company category > company > role type > top skills. Save as output/role_landscape.html. Also a simple bar chart of ML/Research role count by company. Save as output/roles_by_company.png.",
-          "done": false,
+          "done": true,
           "skipped": false,
-          "attempts": 0,
-          "duration_sec": null
+          "attempts": 1,
+          "duration_sec": 180
         }
       ]
     },
