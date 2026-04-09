@@ -82,10 +82,10 @@
         {
           "id": 9,
           "description": "Build role_parser.py: for each matching role URL, crawl the job detail page. Extract requirements section (look for headings like 'Requirements', 'Qualifications', 'What we're looking for', 'You might be a good fit if'). Parse out: years of experience (regex for N+ years), degree level (PhD/MS/BS), specific skills/frameworks (PyTorch, TensorFlow, JAX, CUDA, distributed training, transformers, LLMs, RLHF, etc.), programming languages (Python, C++, Rust, etc.), publication expectations (mentions of papers/publications/top venues). Save to requirements table.",
-          "done": false,
+          "done": true,
           "skipped": false,
-          "attempts": 0,
-          "duration_sec": null
+          "attempts": 1,
+          "duration_sec": 180
         },
         {
           "id": 10,
