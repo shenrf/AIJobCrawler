@@ -78,7 +78,7 @@ def insert_company(conn: sqlite3.Connection, **kwargs: Any) -> int:
         list(kwargs.values()),
     )
     conn.commit()
-    if cur.lastrowid:
+    if cur.rowcount > 0:
         return cur.lastrowid
     # Already existed — fetch id
     row = conn.execute(

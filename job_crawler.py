@@ -385,6 +385,8 @@ class JobCrawler(BaseCrawler):
             category=company["category"],
         )
 
+        logger.info("Company %s -> company_id=%s", company["name"], company_id)
+
         # Route to ATS-specific parser or fall back to generic HTML crawl
         ats = _detect_ats(careers_url)
         if ats is not None:
@@ -411,15 +413,21 @@ class JobCrawler(BaseCrawler):
         # Save to DB
         saved = 0
         for role in roles:
-            insert_role(
-                conn,
-                company_id=company_id,
-                title=role["title"],
-                team=role.get("team"),
-                location=role.get("location"),
-                url=role.get("url"),
-            )
-            saved += 1
+            try:
+                insert_role(
+                    conn,
+                    company_id=company_id,
+                    title=role["title"],
+                    team=role.get("team"),
+                    location=role.get("location"),
+                    url=role.get("url"),
+                )
+                saved += 1
+            except Exception:
+                logger.warning(
+                    "Failed to save role '%s' for %s (company_id=%s)",
+                    role.get("title"), company["name"], company_id,
+                )
 
         logger.info("Saved %d ML/Research roles for %s", saved, company["name"])
         return roles
@@ -434,6 +442,16 @@ class JobCrawler(BaseCrawler):
         init_db()
         conn = get_connection()
         results: dict[str, int] = {}
+
+        # Ensure all companies exist in DB so FK constraints are satisfied
+        for company in companies:
+            insert_company(
+                conn,
+                name=company["name"],
+                url=company["url"],
+                careers_url=company["careers_url"],
+                category=company["category"],
+            )
 
         try:
             for company in companies:

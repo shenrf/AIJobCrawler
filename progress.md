@@ -47,6 +47,8 @@ Started: 2026-04-09
 
 - **Task 21**: End-to-end integration test — ran `python3 main.py --limit 5 all`. Pipeline completed in 74s with no crashes. Results: 42 ML/Research roles from Anthropic (first 5 companies, OpenAI/xAI return 403 so only 3 companies yielded data), 42 requirements extracted, all 6 chart files generated (top_skills.png, company_skill_heatmap.png, degree_requirements.png, experience_requirements.png, roles_by_company.png, role_landscape.html), summary.md and summary.json written. No code changes needed — pipeline works as-is. Files: tasks.json, progress.md
 
+- **Task 22**: Ran full pipeline on all 33 companies (`python3 main.py all`). Completed in 256s. Results: 490 ML/Research roles (378 Anthropic, 75 Scale AI, 27 Mistral AI, 7 Cursor, 3 NVIDIA AI), 485 requirements parsed. All 6 charts generated (top_skills.png, company_skill_heatmap.png, degree_requirements.png, experience_requirements.png, roles_by_company.png, role_landscape.html). summary.md and summary.json exported with cross-company and role-type comparison tables. Many companies return 403/404 (OpenAI, xAI, Adept, Character.ai, Midjourney, Perplexity, AMD — expected per known issues). Committed final data snapshot and all output files. Files: tasks.json, progress.md, data/*, output/*
+
 ## Known Issues
 - Cohere, Character.ai Greenhouse slugs return 404 — may have changed ATS platforms
 - Runway Lever slug (runwayml) returns 404

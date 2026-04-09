@@ -201,10 +201,10 @@
         {
           "id": 22,
           "description": "Run full pipeline on all 30+ companies (main.py all). Review output quality \u2014 check summary.md for accurate requirements comparison, charts for readability. Commit final data snapshot and all output files.",
-          "done": false,
+          "done": true,
           "skipped": false,
-          "attempts": 0,
-          "duration_sec": null
+          "attempts": 1,
+          "duration_sec": 300
         }
       ]
     }
