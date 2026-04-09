@@ -8,10 +8,10 @@
         {
           "id": 1,
           "description": "Project setup: create config.py (constants, headers, rate limits, ML_ROLE_KEYWORDS list for filtering). db.py with SQLite schema: companies table (name, url, careers_url, category, founded, hq, funding, products), roles table (company_id FK, title, team, location, url, seniority_level), requirements table (role_id FK, min_yoe, max_yoe, degree_level, skills JSON list, languages JSON list, publications_expected bool, description_raw text). Create data/ and output/ dirs. Add requirements.txt.",
-          "done": false,
+          "done": true,
           "skipped": false,
-          "attempts": 0,
-          "duration_sec": null
+          "attempts": 1,
+          "duration_sec": 60
         },
         {
           "id": 2,
