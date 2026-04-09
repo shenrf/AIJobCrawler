@@ -16,10 +16,10 @@
         {
           "id": 2,
           "description": "Build companies.py: curated list of 30+ AI companies with metadata (name, url, careers_url, category, founded, hq_location, funding_stage, known_products). Categories: foundation-model, ai-infra, ai-app, ai-safety, ai-chip. Include: OpenAI, Anthropic, Google DeepMind, Meta FAIR, xAI, Mistral, Cohere, AI21, Inflection, Adept, Character.ai, Stability AI, Midjourney, Runway, Hugging Face, Databricks, Scale AI, Anyscale, Modal, Replicate, Together AI, Cerebras, Groq, SambaNova, NVIDIA AI, AMD AI, Apple ML, Amazon AI, Microsoft AI, Perplexity, Cursor, etc.",
-          "done": false,
+          "done": true,
           "skipped": false,
-          "attempts": 0,
-          "duration_sec": null
+          "attempts": 1,
+          "duration_sec": 90
         },
         {
           "id": 3,
