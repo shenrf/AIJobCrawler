@@ -13,6 +13,8 @@ Started: 2026-04-09
 
 - **Task 4**: Built company_crawler.py — CompanyCrawler subclasses BaseCrawler. Crawls each company's homepage + /about fallback. Extracts: description (first 500 chars main text), employee count hints (regex patterns), tech stack mentions (30+ keywords), recent news headlines (CSS selectors for blog/article patterns). Saves to companies table via db.py. Also added description, employee_count, tech_stack, recent_news columns to companies schema and update_company() helper in db.py. Files: company_crawler.py (new), db.py (updated schema + update helper)
 
+- **Task 5**: Added Wikipedia fallback in company_crawler.py. When homepage data is thin (description < 150 chars OR no employee_count), fetches `en.wikipedia.org/wiki/{Company_Name}`. Parses Wikipedia infobox for: founded, HQ, key people, employee count, funding. Falls back to Wikipedia search if direct URL returns non-200. Extracts first paragraph as description. Enriched fields (founded, hq, funding) overwrite static values in DB; key_people and wiki_url stored in new DB columns. Also added `key_people TEXT` and `wiki_url TEXT` columns to companies table schema in db.py. Files: company_crawler.py, db.py
+
 ## Known Issues
 (blockers, warnings, things the next session should know)
 

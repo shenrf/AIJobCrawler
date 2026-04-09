@@ -22,6 +22,8 @@ CREATE TABLE IF NOT EXISTS companies (
     employee_count TEXT,
     tech_stack TEXT DEFAULT '[]',
     recent_news TEXT DEFAULT '[]',
+    key_people TEXT DEFAULT '[]',
+    wiki_url TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

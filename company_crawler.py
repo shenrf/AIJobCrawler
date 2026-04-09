@@ -85,6 +85,87 @@ def _extract_news_headlines(soup: BeautifulSoup) -> list[str]:
     return headlines[:5]
 
 
+WIKIPEDIA_INFOBOX_FIELDS: dict[str, str] = {
+    "founded": "founded",
+    "headquarters": "hq",
+    "key people": "key_people",
+    "number of employees": "employee_count",
+    "employees": "employee_count",
+    "total funding": "funding",
+    "funding": "funding",
+}
+
+
+def _wikipedia_search_url(company_name: str) -> str:
+    """Return Wikipedia URL for a company name."""
+    slug = company_name.replace(" ", "_")
+    return f"https://en.wikipedia.org/wiki/{slug}"
+
+
+def _parse_wikipedia_infobox(soup: BeautifulSoup) -> dict[str, Any]:
+    """Parse Wikipedia infobox table for company metadata."""
+    result: dict[str, Any] = {}
+    infobox = soup.find("table", class_=re.compile(r"infobox"))
+    if not infobox or not isinstance(infobox, Tag):
+        return result
+
+    for row in infobox.find_all("tr"):
+        th = row.find("th")
+        td = row.find("td")
+        if not th or not td:
+            continue
+        label = th.get_text(separator=" ", strip=True).lower()
+        value_tag = td
+        # Remove citation superscripts
+        for sup in value_tag.find_all("sup"):
+            sup.decompose()
+        value = value_tag.get_text(separator=", ", strip=True)
+        # Match label to known fields
+        for key, field in WIKIPEDIA_INFOBOX_FIELDS.items():
+            if key in label:
+                if field == "key_people":
+                    # Split on newline/comma
+                    people = [p.strip() for p in re.split(r"[\n,]+", value) if p.strip()]
+                    result[field] = people[:10]
+                else:
+                    result[field] = value[:300]
+                break
+
+    # Try to get a short description from the first paragraph
+    content_div = soup.find("div", class_="mw-parser-output")
+    if content_div and isinstance(content_div, Tag):
+        for p in content_div.find_all("p", recursive=False):
+            text = p.get_text(strip=True)
+            if len(text) > 50:
+                result["description"] = text[:500]
+                break
+
+    return result
+
+
+def _fetch_wikipedia(session: requests.Session, company_name: str) -> dict[str, Any] | None:
+    """Fetch Wikipedia page for a company and parse infobox. Returns None on failure."""
+    url = _wikipedia_search_url(company_name)
+    try:
+        resp = session.get(url, timeout=10)
+        if resp.status_code != 200:
+            # Try search redirect
+            search_url = f"https://en.wikipedia.org/w/index.php?search={requests.utils.quote(company_name)}&ns0=1"
+            resp = session.get(search_url, timeout=10)
+            if resp.status_code != 200:
+                return None
+        soup = BeautifulSoup(resp.text, "html.parser")
+        # Confirm this is an actual article (not a disambiguation or search results page)
+        if soup.find("div", class_="disambigbox") or "search results" in (soup.title.get_text() if soup.title else "").lower():
+            return None
+        data = _parse_wikipedia_infobox(soup)
+        data["wiki_url"] = url
+        return data if data else None
+    except Exception as exc:
+        logger.debug("Wikipedia fetch failed for %s: %s", company_name, exc)
+        return None
+
+
 class CompanyCrawler(BaseCrawler):
     """Crawls company homepages/about pages to extract info."""
 
@@ -132,6 +213,35 @@ class CompanyCrawler(BaseCrawler):
                 if not result.get("recent_news") and about.get("recent_news"):
                     result["recent_news"] = about["recent_news"]
 
+        # Wikipedia fallback: if data is still thin, enrich from Wikipedia infobox
+        data_is_thin = (
+            len(result.get("description", "")) < 150
+            or not result.get("employee_count")
+        )
+        if data_is_thin:
+            logger.info("Data thin for %s — trying Wikipedia fallback", company["name"])
+            wiki = _fetch_wikipedia(self.session, company["name"])
+            if wiki:
+                if len(wiki.get("description", "")) > len(result.get("description", "")):
+                    result["description"] = wiki["description"]
+                if not result.get("employee_count") and wiki.get("employee_count"):
+                    result["employee_count"] = wiki["employee_count"]
+                if wiki.get("key_people"):
+                    result["key_people"] = wiki["key_people"]
+                if wiki.get("wiki_url"):
+                    result["wiki_url"] = wiki["wiki_url"]
+                # Enrich company static fields if better values found
+                if wiki.get("founded"):
+                    result["founded_wiki"] = wiki["founded"]
+                if wiki.get("hq"):
+                    result["hq_wiki"] = wiki["hq"]
+                if wiki.get("funding"):
+                    result["funding_wiki"] = wiki["funding"]
+                logger.info("Wikipedia enriched %s: desc=%d, people=%d",
+                            company["name"],
+                            len(result.get("description", "")),
+                            len(result.get("key_people", [])))
+
         return result
 
     def crawl_all(self, companies: list[Company] | None = None) -> list[dict[str, Any]]:
@@ -162,20 +272,30 @@ class CompanyCrawler(BaseCrawler):
 
                 # Update with crawled info
                 if info:
-                    update_company(
-                        conn,
-                        company_id,
-                        description=info.get("description"),
-                        employee_count=info.get("employee_count"),
-                        tech_stack=json.dumps(info.get("tech_stack", [])),
-                        recent_news=json.dumps(info.get("recent_news", [])),
-                    )
+                    update_fields: dict[str, Any] = {
+                        "description": info.get("description"),
+                        "employee_count": info.get("employee_count"),
+                        "tech_stack": json.dumps(info.get("tech_stack", [])),
+                        "recent_news": json.dumps(info.get("recent_news", [])),
+                        "key_people": json.dumps(info.get("key_people", [])),
+                    }
+                    if info.get("wiki_url"):
+                        update_fields["wiki_url"] = info["wiki_url"]
+                    # Overwrite static fields with Wikipedia-sourced values if present
+                    if info.get("founded_wiki"):
+                        update_fields["founded"] = info["founded_wiki"]
+                    if info.get("hq_wiki"):
+                        update_fields["hq"] = info["hq_wiki"]
+                    if info.get("funding_wiki"):
+                        update_fields["funding"] = info["funding_wiki"]
+                    update_company(conn, company_id, **update_fields)
                     results.append(info)
-                    logger.info("Saved %s: desc=%d chars, tech=%d, news=%d",
+                    logger.info("Saved %s: desc=%d chars, tech=%d, news=%d, people=%d",
                                 company["name"],
                                 len(info.get("description", "")),
                                 len(info.get("tech_stack", [])),
-                                len(info.get("recent_news", [])))
+                                len(info.get("recent_news", [])),
+                                len(info.get("key_people", [])))
                 else:
                     logger.warning("No data crawled for %s", company["name"])
         finally:

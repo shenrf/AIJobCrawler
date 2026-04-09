@@ -45,10 +45,10 @@
         {
           "id": 5,
           "description": "Add Crunchbase/Wikipedia fallback in company_crawler.py: if company homepage yields thin data, try Wikipedia page and parse infobox for founding date, HQ, key people, funding. Store enriched data in companies table.",
-          "done": false,
+          "done": true,
           "skipped": false,
-          "attempts": 0,
-          "duration_sec": null
+          "attempts": 1,
+          "duration_sec": 300
         },
         {
           "id": 6,
