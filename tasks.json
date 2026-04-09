@@ -1,0 +1,58 @@
+{
+  "project": "AIJobCrawler",
+  "created": "2026-04-09T00:00:00Z",
+  "phases": [
+    {
+      "name": "Phase 1: Foundation & Data Model",
+      "tasks": [
+        {"id": 1, "description": "Project setup: create config.py (constants, headers, rate limits, ML_ROLE_KEYWORDS list for filtering). db.py with SQLite schema: companies table (name, url, careers_url, category, founded, hq, funding, products), roles table (company_id FK, title, team, location, url, seniority_level), requirements table (role_id FK, min_yoe, max_yoe, degree_level, skills JSON list, languages JSON list, publications_expected bool, description_raw text). Create data/ and output/ dirs. Add requirements.txt.", "done": false, "skipped": false, "attempts": 0, "duration_sec": null},
+        {"id": 2, "description": "Build companies.py: curated list of 30+ AI companies with metadata (name, url, careers_url, category, founded, hq_location, funding_stage, known_products). Categories: foundation-model, ai-infra, ai-app, ai-safety, ai-chip. Include: OpenAI, Anthropic, Google DeepMind, Meta FAIR, xAI, Mistral, Cohere, AI21, Inflection, Adept, Character.ai, Stability AI, Midjourney, Runway, Hugging Face, Databricks, Scale AI, Anyscale, Modal, Replicate, Together AI, Cerebras, Groq, SambaNova, NVIDIA AI, AMD AI, Apple ML, Amazon AI, Microsoft AI, Perplexity, Cursor, etc.", "done": false, "skipped": false, "attempts": 0, "duration_sec": null},
+        {"id": 3, "description": "Refactor crawler.py into a clean base BaseCrawler class: extract rate limiting, session management, dedup, error handling, JSONL output. Make it importable and subclassable. Remove the BeautifulSoup demo code at top of file.", "done": false, "skipped": false, "attempts": 0, "duration_sec": null}
+      ]
+    },
+    {
+      "name": "Phase 2: Company Info Crawling",
+      "tasks": [
+        {"id": 4, "description": "Build company_crawler.py: subclass BaseCrawler. For each company, crawl their About/homepage. Extract: description (first 500 chars of main text), employee count hints, tech stack mentions, recent news headlines. Save to companies table via db.py.", "done": false, "skipped": false, "attempts": 0, "duration_sec": null},
+        {"id": 5, "description": "Add Crunchbase/Wikipedia fallback in company_crawler.py: if company homepage yields thin data, try Wikipedia page and parse infobox for founding date, HQ, key people, funding. Store enriched data in companies table.", "done": false, "skipped": false, "attempts": 0, "duration_sec": null},
+        {"id": 6, "description": "Test company_crawler.py end-to-end on 5 companies (Anthropic, OpenAI, Mistral, Hugging Face, Scale AI). Verify data lands in SQLite correctly. Fix any parsing issues.", "done": false, "skipped": false, "attempts": 0, "duration_sec": null}
+      ]
+    },
+    {
+      "name": "Phase 3: ML/Research Role Crawling",
+      "tasks": [
+        {"id": 7, "description": "Build job_crawler.py: fetch careers_url for each company, extract all job listings (title, team, location, url). Filter to ONLY ML/Research roles using ML_ROLE_KEYWORDS from config.py (match: 'machine learning', 'ml engineer', 'research engineer', 'research scientist', 'applied scientist', 'ml infrastructure', 'applied ml', 'ml scientist'). Save matching roles to roles table.", "done": false, "skipped": false, "attempts": 0, "duration_sec": null},
+        {"id": 8, "description": "Add Greenhouse ATS parser in job_crawler.py: boards.greenhouse.io/{company}/jobs returns JSON with all listings. Filter for ML/Research titles. Many companies use this: Anthropic, OpenAI, Mistral, etc. Also add Lever parser (jobs.lever.co/{company}) and Ashby parser (ashbyhq.com/{company} JSON API).", "done": false, "skipped": false, "attempts": 0, "duration_sec": null},
+        {"id": 9, "description": "Build role_parser.py: for each matching role URL, crawl the job detail page. Extract requirements section (look for headings like 'Requirements', 'Qualifications', 'What we're looking for', 'You might be a good fit if'). Parse out: years of experience (regex for N+ years), degree level (PhD/MS/BS), specific skills/frameworks (PyTorch, TensorFlow, JAX, CUDA, distributed training, transformers, LLMs, RLHF, etc.), programming languages (Python, C++, Rust, etc.), publication expectations (mentions of papers/publications/top venues). Save to requirements table.", "done": false, "skipped": false, "attempts": 0, "duration_sec": null},
+        {"id": 10, "description": "Add WorkDay and generic fallback parser for companies not on Greenhouse/Lever/Ashby. Use heuristic HTML parsing for job listings. For detail pages, reuse role_parser.py extraction logic.", "done": false, "skipped": false, "attempts": 0, "duration_sec": null},
+        {"id": 11, "description": "Test job_crawler.py + role_parser.py end-to-end on 10 companies across ATS platforms. Verify: only ML/Research roles saved, requirements extracted correctly, data in SQLite with correct FKs. Log per-company success/fail.", "done": false, "skipped": false, "attempts": 0, "duration_sec": null}
+      ]
+    },
+    {
+      "name": "Phase 4: Requirements Analysis",
+      "tasks": [
+        {"id": 12, "description": "Build analyze.py: load roles + requirements from SQLite. Generate: (1) top 20 most-demanded skills across all roles (count how many roles mention each skill), (2) degree requirements distribution (PhD vs MS vs BS vs not specified), (3) YoE distribution (0-2, 3-5, 5-8, 8+ buckets), (4) how many roles expect publications.", "done": false, "skipped": false, "attempts": 0, "duration_sec": null},
+        {"id": 13, "description": "Add cross-company comparison in analyze.py: for top 10 companies by ML/Research role count, compare their requirements side-by-side — avg YoE, % requiring PhD, top 5 skills demanded, % expecting publications. Export as output/summary.md (markdown table) and output/summary.json.", "done": false, "skipped": false, "attempts": 0, "duration_sec": null},
+        {"id": 14, "description": "Add role-type breakdown in analyze.py: split roles into 'Research Engineer' vs 'ML Engineer' vs 'Research Scientist' vs 'Applied Scientist'. Compare requirements across these role types — do Research Scientists need more publications? Do ML Engineers need more systems skills? Export comparison to summary.md.", "done": false, "skipped": false, "attempts": 0, "duration_sec": null}
+      ]
+    },
+    {
+      "name": "Phase 5: Visualization",
+      "tasks": [
+        {"id": 15, "description": "Build charts.py: horizontal bar chart of top 20 most-demanded skills for ML/Research roles (matplotlib). Save as output/top_skills.png.", "done": false, "skipped": false, "attempts": 0, "duration_sec": null},
+        {"id": 16, "description": "Add chart: company-vs-skill heatmap (plotly or seaborn) — rows are top 15 companies, columns are top 15 skills, cell color = % of that company's roles requiring the skill. Save as output/company_skill_heatmap.png.", "done": false, "skipped": false, "attempts": 0, "duration_sec": null},
+        {"id": 17, "description": "Add chart: degree requirements pie/donut chart (PhD/MS/BS/Not specified). Also a grouped bar comparing degree requirements across role types (Research Engineer vs ML Engineer vs Research Scientist). Save as output/degree_requirements.png.", "done": false, "skipped": false, "attempts": 0, "duration_sec": null},
+        {"id": 18, "description": "Add chart: YoE distribution histogram. Also a box plot of YoE ranges by company (top 10 companies). Save as output/experience_requirements.png.", "done": false, "skipped": false, "attempts": 0, "duration_sec": null},
+        {"id": 19, "description": "Add chart: interactive sunburst (plotly) — company category > company > role type > top skills. Save as output/role_landscape.html. Also a simple bar chart of ML/Research role count by company. Save as output/roles_by_company.png.", "done": false, "skipped": false, "attempts": 0, "duration_sec": null}
+      ]
+    },
+    {
+      "name": "Phase 6: CLI & Integration",
+      "tasks": [
+        {"id": 20, "description": "Build main.py CLI with argparse: subcommands 'crawl-companies', 'crawl-jobs', 'analyze', 'charts', 'all'. Each runs the corresponding module. 'all' runs the full pipeline. Add --limit flag to cap companies crawled (for testing).", "done": false, "skipped": false, "attempts": 0, "duration_sec": null},
+        {"id": 21, "description": "End-to-end integration test: run main.py all --limit 5. Verify: SQLite has ML/Research roles with requirements extracted, summary.md has cross-company comparison, all chart PNGs/HTMLs exist, no crashes. Fix any issues.", "done": false, "skipped": false, "attempts": 0, "duration_sec": null},
+        {"id": 22, "description": "Run full pipeline on all 30+ companies (main.py all). Review output quality — check summary.md for accurate requirements comparison, charts for readability. Commit final data snapshot and all output files.", "done": false, "skipped": false, "attempts": 0, "duration_sec": null}
+      ]
+    }
+  ]
+}
