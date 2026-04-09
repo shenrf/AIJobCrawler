@@ -6,10 +6,7 @@ set -euo pipefail
 
 export PYTHONUTF8=1
 
-# Load API key from .env if present
-if [ -f .env ]; then
-  export $(grep -v '^#' .env | xargs)
-fi
+# Uses Claude subscription auth (no API key needed)
 
 PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$PROJECT_DIR"
@@ -118,7 +115,6 @@ After completing work:
       --model "$MODEL" \
       --allowedTools "Bash,Read,Write,Edit,Glob,Grep" \
       --dangerously-skip-permissions \
-      --bare \
       --max-budget-usd 5 \
       > "logs/task-${TASK_ID}.log" 2>&1; then
       SUCCESS=true
