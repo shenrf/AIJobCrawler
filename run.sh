@@ -4,6 +4,8 @@
 
 set -euo pipefail
 
+export PYTHONUTF8=1
+
 PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$PROJECT_DIR"
 
@@ -21,7 +23,7 @@ log() {
 get_next_task() {
   python -c "
 import json, sys
-with open('$TASKS_FILE') as f:
+with open('$TASKS_FILE', encoding='utf-8') as f:
     data = json.load(f)
 for phase in data['phases']:
     for task in phase['tasks']:
@@ -35,7 +37,7 @@ print('ALL_DONE')
 count_tasks() {
   python -c "
 import json
-with open('$TASKS_FILE') as f:
+with open('$TASKS_FILE', encoding='utf-8') as f:
     data = json.load(f)
 total = done = skipped = 0
 for phase in data['phases']:
@@ -52,7 +54,7 @@ is_opus_task() {
   # Use opus for first and last task of each phase
   python -c "
 import json
-with open('$TASKS_FILE') as f:
+with open('$TASKS_FILE', encoding='utf-8') as f:
     data = json.load(f)
 for phase in data['phases']:
     ids = [t['id'] for t in phase['tasks']]
@@ -124,7 +126,7 @@ After completing work:
   # Check if task actually got marked done
   TASK_DONE=$(python -c "
 import json
-with open('$TASKS_FILE') as f:
+with open('$TASKS_FILE', encoding='utf-8') as f:
     data = json.load(f)
 for phase in data['phases']:
     for task in phase['tasks']:
@@ -140,7 +142,7 @@ for phase in data['phases']:
     # Mark as skipped
     python -c "
 import json
-with open('$TASKS_FILE') as f:
+with open('$TASKS_FILE', encoding='utf-8') as f:
     data = json.load(f)
 for phase in data['phases']:
     for task in phase['tasks']:
