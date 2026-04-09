@@ -28,7 +28,10 @@ with open('$TASKS_FILE', encoding='utf-8') as f:
 for phase in data['phases']:
     for task in phase['tasks']:
         if not task['done'] and not task['skipped']:
-            print(f\"{task['id']}|||{phase['name']}|||{task['description']}\")
+            # Use tab as delimiter (safe for bash parsing)
+            desc = task['description'].replace('\t', ' ').replace('\n', ' ')
+            phase_name = phase['name'].replace('\t', ' ')
+            print(f\"{task['id']}\t{phase_name}\t{desc}\")
             sys.exit(0)
 print('ALL_DONE')
 "
@@ -76,9 +79,9 @@ while true; do
     break
   fi
 
-  TASK_ID=$(echo "$RESULT" | cut -d'|||' -f1)
-  PHASE_NAME=$(echo "$RESULT" | awk -F'\\|\\|\\|' '{print $2}')
-  TASK_DESC=$(echo "$RESULT" | awk -F'\\|\\|\\|' '{print $3}')
+  TASK_ID=$(echo "$RESULT" | cut -f1)
+  PHASE_NAME=$(echo "$RESULT" | cut -f2)
+  TASK_DESC=$(echo "$RESULT" | cut -f3)
 
   # Pick model
   MODEL="sonnet"
