@@ -23,7 +23,7 @@ log() {
 }
 
 get_next_task() {
-  /c/Users/RR/AppData/Local/Programs/Python/Python311/python -c "
+  "/c/Users/RR/AppData/Local/Programs/Python/Python311/python.exe" -c "
 import json, sys
 with open('$TASKS_FILE', encoding='utf-8') as f:
     data = json.load(f)
@@ -40,7 +40,7 @@ print('ALL_DONE')
 }
 
 count_tasks() {
-  /c/Users/RR/AppData/Local/Programs/Python/Python311/python -c "
+  "/c/Users/RR/AppData/Local/Programs/Python/Python311/python.exe" -c "
 import json
 with open('$TASKS_FILE', encoding='utf-8') as f:
     data = json.load(f)
@@ -57,7 +57,7 @@ print(f'{done}/{total} done, {skipped} skipped')
 is_opus_task() {
   local task_id=$1
   # Use opus for first and last task of each phase
-  /c/Users/RR/AppData/Local/Programs/Python/Python311/python -c "
+  "/c/Users/RR/AppData/Local/Programs/Python/Python311/python.exe" -c "
 import json
 with open('$TASKS_FILE', encoding='utf-8') as f:
     data = json.load(f)
@@ -128,7 +128,7 @@ After completing work:
   done
 
   # Check if task actually got marked done
-  TASK_DONE=$(/c/Users/RR/AppData/Local/Programs/Python/Python311/python -c "
+  TASK_DONE=$("/c/Users/RR/AppData/Local/Programs/Python/Python311/python.exe" -c "
 import json
 with open('$TASKS_FILE', encoding='utf-8') as f:
     data = json.load(f)
@@ -144,7 +144,7 @@ for phase in data['phases']:
     CONSECUTIVE_SKIPS=0
   else
     # Mark as skipped
-    /c/Users/RR/AppData/Local/Programs/Python/Python311/python -c "
+    "/c/Users/RR/AppData/Local/Programs/Python/Python311/python.exe" -c "
 import json
 with open('$TASKS_FILE', encoding='utf-8') as f:
     data = json.load(f)
