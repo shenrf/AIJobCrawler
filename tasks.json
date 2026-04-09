@@ -156,10 +156,10 @@
         {
           "id": 17,
           "description": "Add chart: degree requirements pie/donut chart (PhD/MS/BS/Not specified). Also a grouped bar comparing degree requirements across role types (Research Engineer vs ML Engineer vs Research Scientist). Save as output/degree_requirements.png.",
-          "done": false,
+          "done": true,
           "skipped": false,
-          "attempts": 0,
-          "duration_sec": null
+          "attempts": 1,
+          "duration_sec": 120
         },
         {
           "id": 18,

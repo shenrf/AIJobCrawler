@@ -9,7 +9,7 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
-from analyze import load_requirements, top_skills
+from analyze import load_requirements, top_skills, degree_distribution, classify_role_type
 from config import DB_PATH, OUTPUT_DIR
 from db import get_connection
 
@@ -134,6 +134,94 @@ def plot_company_skill_heatmap(
     return output_path
 
 
+def plot_degree_requirements(data: list[dict[str, Any]], output_path: Path | None = None) -> Path:
+    """Donut chart of overall degree distribution + grouped bar by role type.
+
+    Saves both subplots in a single figure to output/degree_requirements.png.
+    """
+    if output_path is None:
+        output_path = Path(OUTPUT_DIR) / "degree_requirements.png"
+
+    DEGREE_ORDER = ["PhD", "MS", "BS", "Not Specified"]
+    DEGREE_COLORS = ["#4C72B0", "#DD8452", "#55A868", "#C44E52"]
+
+    # ── Overall distribution ──────────────────────────────────────────────────
+    dist = degree_distribution(data)
+    labels_overall = [d for d in DEGREE_ORDER if dist.get(d, 0) > 0]
+    sizes_overall = [dist[d] for d in labels_overall]
+    colors_overall = [DEGREE_COLORS[DEGREE_ORDER.index(d)] for d in labels_overall]
+
+    # ── Per role-type distribution ────────────────────────────────────────────
+    ROLE_TYPES = ["Research Scientist", "Applied Scientist", "Research Engineer", "ML Engineer", "Other"]
+    from collections import defaultdict as _dd
+    by_type: dict[str, list[dict]] = _dd(list)
+    for row in data:
+        by_type[classify_role_type(row.get("title", ""))].append(row)
+
+    active_roles = [rt for rt in ROLE_TYPES if by_type.get(rt)]
+    # Matrix: rows = degree, cols = role type  (percentage per role type)
+    grouped: dict[str, list[float]] = {d: [] for d in DEGREE_ORDER}
+    for rt in active_roles:
+        rt_dist = degree_distribution(by_type[rt])
+        total = len(by_type[rt]) or 1
+        for d in DEGREE_ORDER:
+            grouped[d].append(rt_dist.get(d, 0) / total * 100)
+
+    # ── Figure ────────────────────────────────────────────────────────────────
+    fig, (ax_donut, ax_bar) = plt.subplots(1, 2, figsize=(16, 6))
+
+    # Donut
+    wedges, texts, autotexts = ax_donut.pie(
+        sizes_overall,
+        labels=labels_overall,
+        colors=colors_overall,
+        autopct="%1.1f%%",
+        startangle=140,
+        wedgeprops={"width": 0.55, "edgecolor": "white", "linewidth": 1.5},
+        pctdistance=0.78,
+    )
+    for t in autotexts:
+        t.set_fontsize(10)
+    ax_donut.set_title(
+        "Degree Requirements — Overall\n(All ML/Research Roles)",
+        fontsize=13, fontweight="bold",
+    )
+
+    # Grouped bar
+    x = np.arange(len(active_roles))
+    bar_width = 0.18
+    for idx, (degree, color) in enumerate(zip(DEGREE_ORDER, DEGREE_COLORS)):
+        if not any(grouped[degree]):
+            continue
+        offsets = x + (idx - 1.5) * bar_width
+        bars = ax_bar.bar(offsets, grouped[degree], bar_width,
+                          label=degree, color=color, edgecolor="white", linewidth=0.5)
+        for bar in bars:
+            h = bar.get_height()
+            if h > 2:
+                ax_bar.text(bar.get_x() + bar.get_width() / 2, h + 0.5,
+                            f"{h:.0f}%", ha="center", va="bottom", fontsize=7.5)
+
+    ax_bar.set_xticks(x)
+    ax_bar.set_xticklabels(active_roles, fontsize=10, rotation=15, ha="right")
+    ax_bar.set_ylabel("% of Roles", fontsize=11)
+    ax_bar.set_ylim(0, 105)
+    ax_bar.set_title(
+        "Degree Requirements by Role Type",
+        fontsize=13, fontweight="bold",
+    )
+    ax_bar.legend(title="Degree", fontsize=9, title_fontsize=10, loc="upper right")
+    ax_bar.yaxis.grid(True, linestyle="--", alpha=0.5)
+    ax_bar.set_axisbelow(True)
+
+    fig.tight_layout(pad=3.0)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(output_path, dpi=150, bbox_inches="tight")
+    plt.close(fig)
+    print(f"Saved: {output_path}")
+    return output_path
+
+
 def main() -> None:
     """Generate all charts."""
     conn = get_connection()
@@ -141,6 +229,7 @@ def main() -> None:
     print(f"Loaded {len(data)} roles with requirements.")
     plot_top_skills(data)
     plot_company_skill_heatmap(data)
+    plot_degree_requirements(data)
     conn.close()
 
 

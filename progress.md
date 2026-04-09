@@ -37,6 +37,8 @@ Started: 2026-04-09
 
 - **Task 16**: Added `plot_company_skill_heatmap()` to charts.py. Uses matplotlib imshow with YlOrRd colormap. Rows = top N companies by role count (default 15), columns = top N skills globally (default 15), cell = % of that company's roles requiring the skill. Annotates each cell with the percentage value. Saves to output/company_skill_heatmap.png at 150 DPI. Also wired into `main()`. Tested with synthetic data (60 roles, 5 companies, 10 skills) — renders correctly. Files: charts.py, tasks.json
 
+- **Task 17**: Added `plot_degree_requirements()` to charts.py. Two-subplot figure: (1) donut chart of overall degree distribution (PhD/MS/BS/Not Specified) with percentage labels; (2) grouped bar chart comparing degree requirements across role types (Research Scientist, Applied Scientist, Research Engineer, ML Engineer, Other). Uses `degree_distribution()` and `classify_role_type()` from analyze.py. Saves to output/degree_requirements.png at 150 DPI. Wired into `main()`. Tested with synthetic data (80 roles) — renders correctly. Files: charts.py, tasks.json
+
 ## Known Issues
 - Cohere, Character.ai Greenhouse slugs return 404 — may have changed ATS platforms
 - Runway Lever slug (runwayml) returns 404
