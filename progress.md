@@ -33,6 +33,8 @@ Started: 2026-04-09
 
 - **Task 14**: Added role-type breakdown in analyze.py. New functions: `classify_role_type()` (pattern-matches titles into Research Scientist / Applied Scientist / Research Engineer / ML Engineer / Other), `_compute_group_stats()` (computes avg YoE, % PhD, % publications, % systems skills, top 5 skills for a group), `role_type_comparison()` (groups all roles by type and compares). Updated `export_summary()` to include role-type comparison table in summary.md and summary.json. Updated `print_report()` with role-type section. Files: analyze.py, tasks.json
 
+- **Task 15**: Built charts.py — horizontal bar chart of top 20 most-demanded skills using matplotlib. `plot_top_skills()` loads requirements data via analyze.py's `top_skills()`, renders horizontal bar chart with count labels, saves to output/top_skills.png at 150 DPI. CLI entrypoint via `__main__`. Tested with synthetic data (50 roles, 20 skills) — chart renders correctly. Files: charts.py (new), tasks.json (updated)
+
 ## Known Issues
 - Cohere, Character.ai Greenhouse slugs return 404 — may have changed ATS platforms
 - Runway Lever slug (runwayml) returns 404
