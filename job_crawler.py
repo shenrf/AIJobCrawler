@@ -2,18 +2,161 @@
 
 import logging
 import re
+import time
 from typing import Any
 from urllib.parse import urljoin
 
 import requests
 from bs4 import BeautifulSoup, Tag
 
-from config import ML_ROLE_KEYWORDS
+from config import ML_ROLE_KEYWORDS, REQUEST_DELAY_SEC
 from crawler import BaseCrawler
 from companies import COMPANIES, Company
 from db import get_connection, init_db, insert_company, insert_role
 
 logger = logging.getLogger(__name__)
+
+
+# ── ATS detection ─────────────────────────────────────────────────────────────
+
+def _detect_ats(careers_url: str) -> tuple[str, str] | None:
+    """Detect ATS platform and slug from a careers URL.
+
+    Returns (ats_type, slug) or None if not a known ATS URL.
+    Supported: 'greenhouse', 'lever', 'ashby'.
+    """
+    if not careers_url:
+        return None
+
+    # Greenhouse: boards.greenhouse.io/{slug}/jobs OR boards.greenhouse.io/{slug}
+    m = re.match(r"https?://boards\.greenhouse\.io/([^/?#]+)", careers_url)
+    if m:
+        return ("greenhouse", m.group(1))
+
+    # Lever: jobs.lever.co/{slug}
+    m = re.match(r"https?://jobs\.lever\.co/([^/?#]+)", careers_url)
+    if m:
+        return ("lever", m.group(1))
+
+    # Ashby: jobs.ashbyhq.com/{slug} or ashbyhq.com/{slug}
+    m = re.match(r"https?://(?:jobs\.)?ashbyhq\.com/([^/?#]+)", careers_url)
+    if m:
+        return ("ashby", m.group(1))
+
+    return None
+
+
+# ── Greenhouse parser ──────────────────────────────────────────────────────────
+
+def fetch_greenhouse_jobs(slug: str, session: requests.Session) -> list[dict[str, str | None]]:
+    """Fetch all job listings from Greenhouse public API for the given company slug.
+
+    API: https://boards-api.greenhouse.io/v1/boards/{slug}/jobs
+    Returns list of dicts with keys: title, team, location, url.
+    """
+    api_url = f"https://boards-api.greenhouse.io/v1/boards/{slug}/jobs"
+    try:
+        resp = session.get(api_url, timeout=15)
+        resp.raise_for_status()
+        data = resp.json()
+    except Exception:
+        logger.exception("Greenhouse API failed for slug=%s", slug)
+        return []
+
+    time.sleep(REQUEST_DELAY_SEC)
+
+    listings: list[dict[str, str | None]] = []
+    for job in data.get("jobs", []):
+        title = job.get("title") or ""
+        location = job.get("location", {}).get("name")
+        job_url = job.get("absolute_url")
+        # department may appear in metadata
+        departments = job.get("departments", [])
+        team = departments[0].get("name") if departments else None
+
+        listings.append({
+            "title": title,
+            "team": team,
+            "location": location,
+            "url": job_url,
+        })
+
+    logger.info("Greenhouse(%s): %d total listings", slug, len(listings))
+    return listings
+
+
+# ── Lever parser ───────────────────────────────────────────────────────────────
+
+def fetch_lever_jobs(slug: str, session: requests.Session) -> list[dict[str, str | None]]:
+    """Fetch all job listings from Lever public API for the given company slug.
+
+    API: https://api.lever.co/v0/postings/{slug}?mode=json
+    Returns list of dicts with keys: title, team, location, url.
+    """
+    api_url = f"https://api.lever.co/v0/postings/{slug}?mode=json"
+    try:
+        resp = session.get(api_url, timeout=15)
+        resp.raise_for_status()
+        postings = resp.json()
+    except Exception:
+        logger.exception("Lever API failed for slug=%s", slug)
+        return []
+
+    time.sleep(REQUEST_DELAY_SEC)
+
+    listings: list[dict[str, str | None]] = []
+    for post in postings:
+        title = post.get("text") or ""
+        team = post.get("categories", {}).get("team")
+        location = post.get("categories", {}).get("location") or post.get("categories", {}).get("allLocations", [None])[0]
+        job_url = post.get("hostedUrl")
+
+        listings.append({
+            "title": title,
+            "team": team,
+            "location": location,
+            "url": job_url,
+        })
+
+    logger.info("Lever(%s): %d total listings", slug, len(listings))
+    return listings
+
+
+# ── Ashby parser ───────────────────────────────────────────────────────────────
+
+def fetch_ashby_jobs(slug: str, session: requests.Session) -> list[dict[str, str | None]]:
+    """Fetch all job listings from Ashby public API for the given company slug.
+
+    API: https://api.ashbyhq.com/posting-api/job-board/{slug}
+    Returns list of dicts with keys: title, team, location, url.
+    """
+    api_url = f"https://api.ashbyhq.com/posting-api/job-board/{slug}"
+    try:
+        resp = session.get(api_url, timeout=15)
+        resp.raise_for_status()
+        data = resp.json()
+    except Exception:
+        logger.exception("Ashby API failed for slug=%s", slug)
+        return []
+
+    time.sleep(REQUEST_DELAY_SEC)
+
+    listings: list[dict[str, str | None]] = []
+    for job in data.get("jobPostings", []):
+        title = job.get("title") or ""
+        team = job.get("department")
+        location = job.get("locationName") or job.get("location")
+        job_url = job.get("jobUrl") or job.get("applyUrl")
+
+        listings.append({
+            "title": title,
+            "team": team,
+            "location": location,
+            "url": job_url,
+        })
+
+    logger.info("Ashby(%s): %d total listings", slug, len(listings))
+    return listings
 
 
 def is_ml_role(title: str) -> bool:
@@ -156,8 +299,26 @@ class JobCrawler(BaseCrawler):
             category=company["category"],
         )
 
-        # Crawl and parse
-        roles = self.crawl_url(careers_url)
+        # Route to ATS-specific parser or fall back to generic HTML crawl
+        ats = _detect_ats(careers_url)
+        if ats is not None:
+            ats_type, slug = ats
+            logger.info("Using %s ATS parser for %s (slug=%s)", ats_type, company["name"], slug)
+            if ats_type == "greenhouse":
+                all_roles = fetch_greenhouse_jobs(slug, self.session)
+            elif ats_type == "lever":
+                all_roles = fetch_lever_jobs(slug, self.session)
+            elif ats_type == "ashby":
+                all_roles = fetch_ashby_jobs(slug, self.session)
+            else:
+                all_roles = []
+            roles = [r for r in all_roles if is_ml_role(r["title"] or "")]
+            logger.info(
+                "ATS %s(%s): %d total → %d ML/Research",
+                ats_type, slug, len(all_roles), len(roles),
+            )
+        else:
+            roles = self.crawl_url(careers_url)
 
         # Save to DB
         saved = 0

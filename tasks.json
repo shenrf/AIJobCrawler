@@ -74,10 +74,10 @@
         {
           "id": 8,
           "description": "Add Greenhouse ATS parser in job_crawler.py: boards.greenhouse.io/{company}/jobs returns JSON with all listings. Filter for ML/Research titles. Many companies use this: Anthropic, OpenAI, Mistral, etc. Also add Lever parser (jobs.lever.co/{company}) and Ashby parser (ashbyhq.com/{company} JSON API).",
-          "done": false,
+          "done": true,
           "skipped": false,
-          "attempts": 0,
-          "duration_sec": null
+          "attempts": 1,
+          "duration_sec": 300
         },
         {
           "id": 9,

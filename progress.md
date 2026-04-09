@@ -19,6 +19,8 @@ Started: 2026-04-09
 
 - **Task 7**: Built job_crawler.py — JobCrawler subclasses BaseCrawler. Fetches each company's careers_url, extracts job listings from HTML using heuristic link detection (looks for /jobs/, /positions/ URL patterns and role-word text). Filters to ML/Research roles only via `is_ml_role()` using ML_ROLE_KEYWORDS from config.py. Extracts team/location from surrounding HTML context. Saves matching roles to roles table via db.py. Includes `crawl_company()` (single company) and `crawl_all_companies()` (batch) methods. CLI entrypoint prints per-company role counts. Files: job_crawler.py (new), tasks.json (updated)
 
+- **Task 8**: Added Greenhouse, Lever, and Ashby ATS parsers in job_crawler.py. New functions: `fetch_greenhouse_jobs()` (boards-api.greenhouse.io/v1/boards/{slug}/jobs), `fetch_lever_jobs()` (api.lever.co/v0/postings/{slug}?mode=json), `fetch_ashby_jobs()` (api.ashbyhq.com/posting-api/job-board/{slug}). Added `_detect_ats()` which detects ATS platform and slug from careers_url. `crawl_company()` now routes to ATS parsers when detected, falls back to generic HTML parser. Updated companies.py careers_url for: Anthropic → Greenhouse(anthropic), Cohere → Greenhouse(cohere), Scale AI → Greenhouse(scaleai), Character.ai → Greenhouse(characterai), Mistral AI → Lever(mistral), Runway → Lever(runwayml), Together AI → Ashby(together.ai), Perplexity AI → Ashby(perplexity-ai). Files: job_crawler.py, companies.py, tasks.json
+
 ## Known Issues
 (blockers, warnings, things the next session should know)
 

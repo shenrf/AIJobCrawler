@@ -35,7 +35,7 @@ COMPANIES: list[Company] = [
     {
         "name": "Anthropic",
         "url": "https://anthropic.com",
-        "careers_url": "https://www.anthropic.com/careers",
+        "careers_url": "https://boards.greenhouse.io/anthropic",
         "category": "foundation-model",
         "founded": 2021,
         "hq_location": "San Francisco, CA",
@@ -75,7 +75,7 @@ COMPANIES: list[Company] = [
     {
         "name": "Mistral AI",
         "url": "https://mistral.ai",
-        "careers_url": "https://jobs.mistral.ai/",
+        "careers_url": "https://jobs.lever.co/mistral",
         "category": "foundation-model",
         "founded": 2023,
         "hq_location": "Paris, France",
@@ -85,7 +85,7 @@ COMPANIES: list[Company] = [
     {
         "name": "Cohere",
         "url": "https://cohere.com",
-        "careers_url": "https://cohere.com/careers",
+        "careers_url": "https://boards.greenhouse.io/cohere",
         "category": "foundation-model",
         "founded": 2019,
         "hq_location": "Toronto, Canada",
@@ -147,7 +147,7 @@ COMPANIES: list[Company] = [
     {
         "name": "Character.ai",
         "url": "https://character.ai",
-        "careers_url": "https://character.ai/careers",
+        "careers_url": "https://boards.greenhouse.io/characterai",
         "category": "ai-app",
         "founded": 2021,
         "hq_location": "Menlo Park, CA",
@@ -177,7 +177,7 @@ COMPANIES: list[Company] = [
     {
         "name": "Runway",
         "url": "https://runwayml.com",
-        "careers_url": "https://runwayml.com/careers/",
+        "careers_url": "https://jobs.lever.co/runwayml",
         "category": "ai-app",
         "founded": 2018,
         "hq_location": "New York, NY",
@@ -187,7 +187,7 @@ COMPANIES: list[Company] = [
     {
         "name": "Perplexity AI",
         "url": "https://www.perplexity.ai",
-        "careers_url": "https://www.perplexity.ai/hub/careers",
+        "careers_url": "https://jobs.ashbyhq.com/perplexity-ai",
         "category": "ai-app",
         "founded": 2022,
         "hq_location": "San Francisco, CA",
@@ -228,7 +228,7 @@ COMPANIES: list[Company] = [
     {
         "name": "Scale AI",
         "url": "https://scale.com",
-        "careers_url": "https://scale.com/careers",
+        "careers_url": "https://boards.greenhouse.io/scaleai",
         "category": "ai-infra",
         "founded": 2016,
         "hq_location": "San Francisco, CA",
@@ -268,7 +268,7 @@ COMPANIES: list[Company] = [
     {
         "name": "Together AI",
         "url": "https://www.together.ai",
-        "careers_url": "https://www.together.ai/careers",
+        "careers_url": "https://jobs.ashbyhq.com/together.ai",
         "category": "ai-infra",
         "founded": 2022,
         "hq_location": "San Francisco, CA",
