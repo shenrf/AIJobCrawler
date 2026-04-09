@@ -29,6 +29,8 @@ Started: 2026-04-09
 
 - **Task 12**: Built analyze.py — requirements analysis module. Functions: `load_requirements()` (joins roles+companies+requirements from SQLite), `top_skills()` (top N skills by role count), `degree_distribution()` (PhD/MS/BS/Not Specified), `yoe_distribution()` (0-2/3-5/5-8/8+ buckets), `publications_stats()` (expects vs no). `run_analysis()` orchestrates all four analyses, `print_report()` renders human-readable output. CLI entrypoint via `__main__`. Files: analyze.py (new), tasks.json (updated)
 
+- **Task 13**: Added cross-company comparison in analyze.py. New functions: `company_comparison()` (groups roles by company, computes avg YoE, % PhD, top 5 skills, % publications for top N companies by role count), `export_summary()` (writes output/summary.md markdown table and output/summary.json). `run_analysis()` now calls both and includes comparison in returned dict. `print_report()` extended with comparison table. Files: analyze.py, output/summary.md, output/summary.json, tasks.json
+
 ## Known Issues
 - Cohere, Character.ai Greenhouse slugs return 404 — may have changed ATS platforms
 - Runway Lever slug (runwayml) returns 404

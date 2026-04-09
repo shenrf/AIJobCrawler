@@ -119,10 +119,10 @@
         {
           "id": 13,
           "description": "Add cross-company comparison in analyze.py: for top 10 companies by ML/Research role count, compare their requirements side-by-side — avg YoE, % requiring PhD, top 5 skills demanded, % expecting publications. Export as output/summary.md (markdown table) and output/summary.json.",
-          "done": false,
+          "done": true,
           "skipped": false,
-          "attempts": 0,
-          "duration_sec": null
+          "attempts": 1,
+          "duration_sec": 180
         },
         {
           "id": 14,

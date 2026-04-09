@@ -2,10 +2,12 @@
 
 import json
 import sqlite3
-from collections import Counter
+import time
+from collections import Counter, defaultdict
+from pathlib import Path
 from typing import Any
 
-from config import DB_PATH
+from config import DB_PATH, OUTPUT_DIR
 from db import get_connection
 
 
@@ -76,6 +78,90 @@ def publications_stats(data: list[dict[str, Any]]) -> dict[str, int]:
     return {"expects_publications": expects, "no_publications": len(data) - expects}
 
 
+def company_comparison(data: list[dict[str, Any]], top_n: int = 10) -> list[dict[str, Any]]:
+    """Cross-company comparison for top N companies by ML/Research role count."""
+    # Group rows by company
+    by_company: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for row in data:
+        by_company[row["company"]].append(row)
+
+    # Sort companies by role count, take top N
+    ranked = sorted(by_company.items(), key=lambda x: len(x[1]), reverse=True)[:top_n]
+
+    results = []
+    for company, rows in ranked:
+        total = len(rows)
+
+        # Avg YoE (use min_yoe as proxy)
+        yoe_vals = [r["min_yoe"] for r in rows if r.get("min_yoe") is not None]
+        avg_yoe = round(sum(yoe_vals) / len(yoe_vals), 1) if yoe_vals else None
+
+        # % requiring PhD
+        phd_count = sum(1 for r in rows if r.get("degree_level") == "PhD")
+        pct_phd = round(phd_count / total * 100, 1)
+
+        # Top 5 skills
+        skill_counter: Counter[str] = Counter()
+        for row in rows:
+            raw = row.get("skills")
+            if not raw:
+                continue
+            skills = json.loads(raw) if isinstance(raw, str) else raw
+            for skill in set(skills):
+                skill_counter[skill] += 1
+        top5_skills = [s for s, _ in skill_counter.most_common(5)]
+
+        # % expecting publications
+        pub_count = sum(1 for r in rows if r.get("publications_expected"))
+        pct_pub = round(pub_count / total * 100, 1)
+
+        results.append({
+            "company": company,
+            "role_count": total,
+            "avg_yoe": avg_yoe,
+            "pct_phd": pct_phd,
+            "top5_skills": top5_skills,
+            "pct_publications": pct_pub,
+        })
+
+    return results
+
+
+def export_summary(comparison: list[dict[str, Any]], output_dir: str = OUTPUT_DIR) -> None:
+    """Export cross-company comparison as summary.md and summary.json."""
+    Path(output_dir).mkdir(parents=True, exist_ok=True)
+
+    # --- JSON ---
+    json_path = Path(output_dir) / "summary.json"
+    with open(json_path, "w") as f:
+        json.dump(comparison, f, indent=2)
+
+    # --- Markdown ---
+    md_path = Path(output_dir) / "summary.md"
+    lines = [
+        "# ML/Research Job Requirements — Cross-Company Comparison",
+        "",
+        "Top companies by ML/Research role count, with requirements summary.",
+        "",
+        "| Company | Roles | Avg YoE | % PhD | Top 5 Skills | % Publications |",
+        "|---------|-------|---------|-------|--------------|----------------|",
+    ]
+    for row in comparison:
+        avg_yoe_str = str(row["avg_yoe"]) if row["avg_yoe"] is not None else "N/A"
+        skills_str = ", ".join(row["top5_skills"]) if row["top5_skills"] else "N/A"
+        lines.append(
+            f"| {row['company']} | {row['role_count']} | {avg_yoe_str} "
+            f"| {row['pct_phd']}% | {skills_str} | {row['pct_publications']}% |"
+        )
+
+    lines.append("")
+    with open(md_path, "w") as f:
+        f.write("\n".join(lines))
+
+    print(f"Exported: {json_path}")
+    print(f"Exported: {md_path}")
+
+
 def run_analysis(db_path: str = DB_PATH) -> dict[str, Any]:
     """Run all analyses and return results dict."""
     conn = get_connection(db_path)
@@ -85,6 +171,9 @@ def run_analysis(db_path: str = DB_PATH) -> dict[str, Any]:
     total_roles = len(data)
     roles_with_reqs = sum(1 for r in data if r.get("skills") is not None)
 
+    comparison = company_comparison(data)
+    export_summary(comparison)
+
     results = {
         "total_roles": total_roles,
         "roles_with_requirements": roles_with_reqs,
@@ -92,6 +181,7 @@ def run_analysis(db_path: str = DB_PATH) -> dict[str, Any]:
         "degree_distribution": degree_distribution(data),
         "yoe_distribution": yoe_distribution(data),
         "publications": publications_stats(data),
+        "company_comparison": comparison,
     }
     return results
 
@@ -125,6 +215,19 @@ def print_report(results: dict[str, Any]) -> None:
     pct = pub["expects_publications"] / total * 100 if total else 0
     print(f"  Expects publications: {pub['expects_publications']} ({pct:.0f}%)")
     print(f"  No requirement:       {pub['no_publications']}")
+
+    if "company_comparison" in results:
+        print(f"\n--- Cross-Company Comparison (Top {len(results['company_comparison'])}) ---")
+        header = f"  {'Company':<25s} {'Roles':>5}  {'Avg YoE':>7}  {'%PhD':>5}  {'%Pub':>5}  Top Skills"
+        print(header)
+        print("  " + "-" * 85)
+        for row in results["company_comparison"]:
+            avg_yoe_str = str(row["avg_yoe"]) if row["avg_yoe"] is not None else "N/A"
+            skills_str = ", ".join(row["top5_skills"][:3]) if row["top5_skills"] else "N/A"
+            print(
+                f"  {row['company']:<25s} {row['role_count']:>5}  {avg_yoe_str:>7}  "
+                f"{row['pct_phd']:>4.0f}%  {row['pct_publications']:>4.0f}%  {skills_str}"
+            )
     print()
 
 
