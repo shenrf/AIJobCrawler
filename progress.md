@@ -23,6 +23,8 @@ Started: 2026-04-09
 
 - **Task 9**: Built role_parser.py — RoleParser for job detail pages. Extracts: requirements section by matching headings (Requirements, Qualifications, What we're looking for, etc.), YoE via regex (N+ years, N-M years, at least N years), degree level (PhD > MS > BS priority), skills/frameworks (40+ patterns: PyTorch, JAX, CUDA, RLHF, distributed training, etc.), programming languages (Python, C++, Rust, Go, etc.), publication expectations (paper/conference venue mentions). `parse_role_requirements()` fetches a URL and returns parsed dict. `parse_and_save_role()` saves to requirements table. `parse_all_roles()` batch-processes all roles in DB missing requirements. Files: role_parser.py (new), tasks.json (updated)
 
+- **Task 10**: Added WorkDay ATS parser in job_crawler.py. New `fetch_workday_jobs()` uses Workday's undocumented CXS POST API (`/wday/cxs/{tenant}/{board}/jobs`) with pagination. Added Workday detection to `_detect_ats()` — matches `{tenant}.wd{n}.myworkdayjobs.com` URLs and encodes tenant/wd_num/board into a `|`-delimited slug. Wired Workday into `crawl_company()`. Updated companies.py: NVIDIA → `nvidia.wd5.myworkdayjobs.com/en-US/NVIDIAExternalCareerSite`, AMD → `amd.wd1.myworkdayjobs.com/en-US/External`. Generic HTML fallback (existing `_extract_listings_from_html`) remains the catch-all for any other custom career pages. Files: job_crawler.py, companies.py, tasks.json
+
 ## Known Issues
 (blockers, warnings, things the next session should know)
 

@@ -90,10 +90,10 @@
         {
           "id": 10,
           "description": "Add WorkDay and generic fallback parser for companies not on Greenhouse/Lever/Ashby. Use heuristic HTML parsing for job listings. For detail pages, reuse role_parser.py extraction logic.",
-          "done": false,
+          "done": true,
           "skipped": false,
-          "attempts": 0,
-          "duration_sec": null
+          "attempts": 1,
+          "duration_sec": 300
         },
         {
           "id": 11,

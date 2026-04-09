@@ -309,7 +309,7 @@ COMPANIES: list[Company] = [
     {
         "name": "NVIDIA AI",
         "url": "https://www.nvidia.com/en-us/ai/",
-        "careers_url": "https://www.nvidia.com/en-us/about-nvidia/careers/",
+        "careers_url": "https://nvidia.wd5.myworkdayjobs.com/en-US/NVIDIAExternalCareerSite",
         "category": "ai-chip",
         "founded": 1993,
         "hq_location": "Santa Clara, CA",
@@ -319,7 +319,7 @@ COMPANIES: list[Company] = [
     {
         "name": "AMD AI",
         "url": "https://www.amd.com/en/solutions/ai.html",
-        "careers_url": "https://careers.amd.com/careers-home",
+        "careers_url": "https://amd.wd1.myworkdayjobs.com/en-US/External",
         "category": "ai-chip",
         "founded": 1969,
         "hq_location": "Santa Clara, CA",

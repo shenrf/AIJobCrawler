@@ -43,6 +43,17 @@ def _detect_ats(careers_url: str) -> tuple[str, str] | None:
     if m:
         return ("ashby", m.group(1))
 
+    # Workday: {tenant}.wd{n}.myworkdayjobs.com/en-US/{board}
+    m = re.match(
+        r"https?://([^.]+)\.(wd\d+)\.myworkdayjobs\.com(?:/[^/]+/([^/?#]+))?",
+        careers_url,
+    )
+    if m:
+        tenant = m.group(1)
+        wd_num = m.group(2)
+        board = m.group(3) or ""
+        return ("workday", f"{tenant}|{wd_num}|{board}")
+
     return None
 
 
@@ -156,6 +167,81 @@ def fetch_ashby_jobs(slug: str, session: requests.Session) -> list[dict[str, str
         })
 
     logger.info("Ashby(%s): %d total listings", slug, len(listings))
+    return listings
+
+
+# ── Workday parser ─────────────────────────────────────────────────────────────
+
+def fetch_workday_jobs(slug: str, session: requests.Session) -> list[dict[str, str | None]]:
+    """Fetch job listings from a Workday-hosted career site.
+
+    Slug format: "{tenant}|{wd_num}|{board}" (e.g. "nvidia|wd5|NVIDIAExternalCareerSite").
+    Uses Workday's undocumented CXS search API with POST requests.
+    Falls back to paginated GET if POST fails.
+
+    Returns list of dicts with keys: title, team, location, url.
+    """
+    parts = slug.split("|", 2)
+    if len(parts) != 3:
+        logger.error("Invalid Workday slug: %s", slug)
+        return []
+
+    tenant, wd_num, board = parts
+    base_url = f"https://{tenant}.{wd_num}.myworkdayjobs.com"
+    api_url = f"{base_url}/wday/cxs/{tenant}/{board}/jobs"
+
+    listings: list[dict[str, str | None]] = []
+    offset = 0
+    limit = 20
+
+    while True:
+        payload = {
+            "appliedFacets": {},
+            "limit": limit,
+            "offset": offset,
+            "searchText": "",
+        }
+        try:
+            resp = session.post(
+                api_url,
+                json=payload,
+                headers={"Content-Type": "application/json"},
+                timeout=20,
+            )
+            resp.raise_for_status()
+            data = resp.json()
+        except Exception:
+            logger.warning("Workday CXS API failed for %s (offset=%d), trying HTML fallback", slug, offset)
+            break
+
+        time.sleep(REQUEST_DELAY_SEC)
+
+        job_postings = data.get("jobPostings", [])
+        if not job_postings:
+            break
+
+        for job in job_postings:
+            title = job.get("title") or ""
+            location = job.get("locationsText") or job.get("location") or None
+            # Workday returns a relative path like /en-US/{board}/job/{id}
+            external_path = job.get("externalPath") or ""
+            job_url = f"{base_url}{external_path}" if external_path else None
+            # Team/department not always in listing; may be in detail page
+            team = job.get("jobFunctionSummary") or None
+
+            listings.append({
+                "title": title,
+                "team": team,
+                "location": location,
+                "url": job_url,
+            })
+
+        total = data.get("total", 0)
+        offset += limit
+        if offset >= total or not job_postings:
+            break
+
+    logger.info("Workday(%s): %d total listings fetched", slug, len(listings))
     return listings
 
 
@@ -310,6 +396,8 @@ class JobCrawler(BaseCrawler):
                 all_roles = fetch_lever_jobs(slug, self.session)
             elif ats_type == "ashby":
                 all_roles = fetch_ashby_jobs(slug, self.session)
+            elif ats_type == "workday":
+                all_roles = fetch_workday_jobs(slug, self.session)
             else:
                 all_roles = []
             roles = [r for r in all_roles if is_ml_role(r["title"] or "")]
