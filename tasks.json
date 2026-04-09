@@ -111,10 +111,10 @@
         {
           "id": 12,
           "description": "Build analyze.py: load roles + requirements from SQLite. Generate: (1) top 20 most-demanded skills across all roles (count how many roles mention each skill), (2) degree requirements distribution (PhD vs MS vs BS vs not specified), (3) YoE distribution (0-2, 3-5, 5-8, 8+ buckets), (4) how many roles expect publications.",
-          "done": false,
+          "done": true,
           "skipped": false,
-          "attempts": 0,
-          "duration_sec": null
+          "attempts": 1,
+          "duration_sec": 120
         },
         {
           "id": 13,

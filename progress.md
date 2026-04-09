@@ -27,6 +27,8 @@ Started: 2026-04-09
 
 - **Task 11**: E2E tested job_crawler.py + role_parser.py on 10 companies across all 4 ATS platforms (Greenhouse, Lever, Ashby, Workday). Results: 10/10 companies crawled without crashes, 81 ML/Research roles found (Anthropic 42, Scale AI 25, Mistral 13, NVIDIA 1), 0 non-ML roles leaked through filter, all FKs valid. Parsed requirements for 8/10 sampled roles (2 failed: 1 Lever timeout, 1 Workday detail page 404). Extraction quality: 88% skills, 88% degree, 75% languages, 50% YoE, 50% publications. Some ATS slugs returned 404 (Cohere, Character.ai, Runway, Together AI, Perplexity AI — likely moved platforms since companies.py was written). Files: tests/test_job_role_e2e.py (new), tasks.json (updated)
 
+- **Task 12**: Built analyze.py — requirements analysis module. Functions: `load_requirements()` (joins roles+companies+requirements from SQLite), `top_skills()` (top N skills by role count), `degree_distribution()` (PhD/MS/BS/Not Specified), `yoe_distribution()` (0-2/3-5/5-8/8+ buckets), `publications_stats()` (expects vs no). `run_analysis()` orchestrates all four analyses, `print_report()` renders human-readable output. CLI entrypoint via `__main__`. Files: analyze.py (new), tasks.json (updated)
+
 ## Known Issues
 - Cohere, Character.ai Greenhouse slugs return 404 — may have changed ATS platforms
 - Runway Lever slug (runwayml) returns 404
