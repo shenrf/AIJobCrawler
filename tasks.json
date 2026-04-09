@@ -127,10 +127,10 @@
         {
           "id": 14,
           "description": "Add role-type breakdown in analyze.py: split roles into 'Research Engineer' vs 'ML Engineer' vs 'Research Scientist' vs 'Applied Scientist'. Compare requirements across these role types — do Research Scientists need more publications? Do ML Engineers need more systems skills? Export comparison to summary.md.",
-          "done": false,
+          "done": true,
           "skipped": false,
-          "attempts": 0,
-          "duration_sec": null
+          "attempts": 1,
+          "duration_sec": 120
         }
       ]
     },

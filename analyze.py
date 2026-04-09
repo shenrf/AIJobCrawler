@@ -78,6 +78,102 @@ def publications_stats(data: list[dict[str, Any]]) -> dict[str, int]:
     return {"expects_publications": expects, "no_publications": len(data) - expects}
 
 
+ROLE_TYPE_PATTERNS: dict[str, list[str]] = {
+    "Research Scientist": ["research scientist", "research sci"],
+    "Applied Scientist": ["applied scientist"],
+    "Research Engineer": ["research engineer", "research eng"],
+    "ML Engineer": [
+        "ml engineer", "machine learning engineer", "ml infrastructure",
+        "applied ml", "ml sci", "ml platform", "machine learning",
+    ],
+}
+
+
+def classify_role_type(title: str) -> str:
+    """Classify a role title into one of the four role types."""
+    lower = title.lower()
+    # Check in priority order (most specific first)
+    for role_type, patterns in ROLE_TYPE_PATTERNS.items():
+        for pattern in patterns:
+            if pattern in lower:
+                return role_type
+    return "Other"
+
+
+def _compute_group_stats(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    """Compute summary stats for a group of roles."""
+    total = len(rows)
+    if total == 0:
+        return {"count": 0}
+
+    # Avg YoE
+    yoe_vals = [r["min_yoe"] for r in rows if r.get("min_yoe") is not None]
+    avg_yoe = round(sum(yoe_vals) / len(yoe_vals), 1) if yoe_vals else None
+
+    # % PhD
+    phd_count = sum(1 for r in rows if r.get("degree_level") == "PhD")
+    pct_phd = round(phd_count / total * 100, 1)
+
+    # % publications
+    pub_count = sum(1 for r in rows if r.get("publications_expected"))
+    pct_pub = round(pub_count / total * 100, 1)
+
+    # Top skills
+    skill_counter: Counter[str] = Counter()
+    for row in rows:
+        raw = row.get("skills")
+        if not raw:
+            continue
+        skills = json.loads(raw) if isinstance(raw, str) else raw
+        for skill in set(skills):
+            skill_counter[skill] += 1
+    top5_skills = [s for s, _ in skill_counter.most_common(5)]
+
+    # Systems skills (CUDA, distributed training, infra, Kubernetes, Docker, C++, Rust)
+    systems_keywords = {"cuda", "distributed training", "kubernetes", "docker", "c++",
+                        "rust", "infrastructure", "systems", "mlops", "gpu"}
+    systems_count = 0
+    for row in rows:
+        raw = row.get("skills")
+        if not raw:
+            continue
+        skills = json.loads(raw) if isinstance(raw, str) else raw
+        langs_raw = row.get("languages")
+        langs = json.loads(langs_raw) if isinstance(langs_raw, str) and langs_raw else []
+        all_items = {s.lower() for s in skills} | {l.lower() for l in langs}
+        if all_items & systems_keywords:
+            systems_count += 1
+    pct_systems = round(systems_count / total * 100, 1)
+
+    return {
+        "count": total,
+        "avg_yoe": avg_yoe,
+        "pct_phd": pct_phd,
+        "pct_publications": pct_pub,
+        "pct_systems_skills": pct_systems,
+        "top5_skills": top5_skills,
+    }
+
+
+def role_type_comparison(data: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Compare requirements across role types (Research Engineer, ML Engineer, etc.)."""
+    by_type: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for row in data:
+        rtype = classify_role_type(row.get("title", ""))
+        by_type[rtype].append(row)
+
+    results = []
+    for role_type in list(ROLE_TYPE_PATTERNS.keys()) + ["Other"]:
+        rows = by_type.get(role_type, [])
+        if not rows:
+            continue
+        stats = _compute_group_stats(rows)
+        stats["role_type"] = role_type
+        results.append(stats)
+
+    return results
+
+
 def company_comparison(data: list[dict[str, Any]], top_n: int = 10) -> list[dict[str, Any]]:
     """Cross-company comparison for top N companies by ML/Research role count."""
     # Group rows by company
@@ -127,19 +223,28 @@ def company_comparison(data: list[dict[str, Any]], top_n: int = 10) -> list[dict
     return results
 
 
-def export_summary(comparison: list[dict[str, Any]], output_dir: str = OUTPUT_DIR) -> None:
-    """Export cross-company comparison as summary.md and summary.json."""
+def export_summary(
+    comparison: list[dict[str, Any]],
+    role_types: list[dict[str, Any]] | None = None,
+    output_dir: str = OUTPUT_DIR,
+) -> None:
+    """Export cross-company and role-type comparison as summary.md and summary.json."""
     Path(output_dir).mkdir(parents=True, exist_ok=True)
 
     # --- JSON ---
     json_path = Path(output_dir) / "summary.json"
+    export_data = {"company_comparison": comparison}
+    if role_types:
+        export_data["role_type_comparison"] = role_types
     with open(json_path, "w") as f:
-        json.dump(comparison, f, indent=2)
+        json.dump(export_data, f, indent=2)
 
     # --- Markdown ---
     md_path = Path(output_dir) / "summary.md"
     lines = [
-        "# ML/Research Job Requirements — Cross-Company Comparison",
+        "# ML/Research Job Requirements — Summary",
+        "",
+        "## Cross-Company Comparison",
         "",
         "Top companies by ML/Research role count, with requirements summary.",
         "",
@@ -153,6 +258,25 @@ def export_summary(comparison: list[dict[str, Any]], output_dir: str = OUTPUT_DI
             f"| {row['company']} | {row['role_count']} | {avg_yoe_str} "
             f"| {row['pct_phd']}% | {skills_str} | {row['pct_publications']}% |"
         )
+
+    if role_types:
+        lines.extend([
+            "",
+            "## Role-Type Comparison",
+            "",
+            "Requirements breakdown by role type.",
+            "",
+            "| Role Type | Count | Avg YoE | % PhD | % Publications | % Systems Skills | Top 5 Skills |",
+            "|-----------|-------|---------|-------|----------------|------------------|--------------|",
+        ])
+        for rt in role_types:
+            avg_yoe_str = str(rt["avg_yoe"]) if rt.get("avg_yoe") is not None else "N/A"
+            skills_str = ", ".join(rt.get("top5_skills", [])) or "N/A"
+            lines.append(
+                f"| {rt['role_type']} | {rt['count']} | {avg_yoe_str} "
+                f"| {rt.get('pct_phd', 0)}% | {rt.get('pct_publications', 0)}% "
+                f"| {rt.get('pct_systems_skills', 0)}% | {skills_str} |"
+            )
 
     lines.append("")
     with open(md_path, "w") as f:
@@ -172,7 +296,8 @@ def run_analysis(db_path: str = DB_PATH) -> dict[str, Any]:
     roles_with_reqs = sum(1 for r in data if r.get("skills") is not None)
 
     comparison = company_comparison(data)
-    export_summary(comparison)
+    role_types = role_type_comparison(data)
+    export_summary(comparison, role_types)
 
     results = {
         "total_roles": total_roles,
@@ -182,6 +307,7 @@ def run_analysis(db_path: str = DB_PATH) -> dict[str, Any]:
         "yoe_distribution": yoe_distribution(data),
         "publications": publications_stats(data),
         "company_comparison": comparison,
+        "role_type_comparison": role_types,
     }
     return results
 
@@ -215,6 +341,20 @@ def print_report(results: dict[str, Any]) -> None:
     pct = pub["expects_publications"] / total * 100 if total else 0
     print(f"  Expects publications: {pub['expects_publications']} ({pct:.0f}%)")
     print(f"  No requirement:       {pub['no_publications']}")
+
+    if "role_type_comparison" in results:
+        print(f"\n--- Role-Type Comparison ---")
+        header = f"  {'Role Type':<25s} {'Count':>5}  {'Avg YoE':>7}  {'%PhD':>5}  {'%Pub':>5}  {'%Sys':>5}  Top Skills"
+        print(header)
+        print("  " + "-" * 95)
+        for rt in results["role_type_comparison"]:
+            avg_yoe_str = str(rt["avg_yoe"]) if rt.get("avg_yoe") is not None else "N/A"
+            skills_str = ", ".join(rt.get("top5_skills", [])[:3]) or "N/A"
+            print(
+                f"  {rt['role_type']:<25s} {rt['count']:>5}  {avg_yoe_str:>7}  "
+                f"{rt.get('pct_phd', 0):>4.0f}%  {rt.get('pct_publications', 0):>4.0f}%  "
+                f"{rt.get('pct_systems_skills', 0):>4.0f}%  {skills_str}"
+            )
 
     if "company_comparison" in results:
         print(f"\n--- Cross-Company Comparison (Top {len(results['company_comparison'])}) ---")
