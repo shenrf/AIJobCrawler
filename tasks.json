@@ -118,7 +118,7 @@
         },
         {
           "id": 13,
-          "description": "Add cross-company comparison in analyze.py: for top 10 companies by ML/Research role count, compare their requirements side-by-side — avg YoE, % requiring PhD, top 5 skills demanded, % expecting publications. Export as output/summary.md (markdown table) and output/summary.json.",
+          "description": "Add cross-company comparison in analyze.py: for top 10 companies by ML/Research role count, compare their requirements side-by-side \u2014 avg YoE, % requiring PhD, top 5 skills demanded, % expecting publications. Export as output/summary.md (markdown table) and output/summary.json.",
           "done": true,
           "skipped": false,
           "attempts": 1,
@@ -126,7 +126,7 @@
         },
         {
           "id": 14,
-          "description": "Add role-type breakdown in analyze.py: split roles into 'Research Engineer' vs 'ML Engineer' vs 'Research Scientist' vs 'Applied Scientist'. Compare requirements across these role types — do Research Scientists need more publications? Do ML Engineers need more systems skills? Export comparison to summary.md.",
+          "description": "Add role-type breakdown in analyze.py: split roles into 'Research Engineer' vs 'ML Engineer' vs 'Research Scientist' vs 'Applied Scientist'. Compare requirements across these role types \u2014 do Research Scientists need more publications? Do ML Engineers need more systems skills? Export comparison to summary.md.",
           "done": true,
           "skipped": false,
           "attempts": 1,
@@ -147,7 +147,7 @@
         },
         {
           "id": 16,
-          "description": "Add chart: company-vs-skill heatmap (plotly or seaborn) — rows are top 15 companies, columns are top 15 skills, cell color = % of that company's roles requiring the skill. Save as output/company_skill_heatmap.png.",
+          "description": "Add chart: company-vs-skill heatmap (plotly or seaborn) \u2014 rows are top 15 companies, columns are top 15 skills, cell color = % of that company's roles requiring the skill. Save as output/company_skill_heatmap.png.",
           "done": true,
           "skipped": false,
           "attempts": 1,
@@ -164,14 +164,14 @@
         {
           "id": 18,
           "description": "Add chart: YoE distribution histogram. Also a box plot of YoE ranges by company (top 10 companies). Save as output/experience_requirements.png.",
-          "done": false,
+          "done": true,
           "skipped": false,
-          "attempts": 0,
-          "duration_sec": null
+          "attempts": 1,
+          "duration_sec": 120
         },
         {
           "id": 19,
-          "description": "Add chart: interactive sunburst (plotly) — company category > company > role type > top skills. Save as output/role_landscape.html. Also a simple bar chart of ML/Research role count by company. Save as output/roles_by_company.png.",
+          "description": "Add chart: interactive sunburst (plotly) \u2014 company category > company > role type > top skills. Save as output/role_landscape.html. Also a simple bar chart of ML/Research role count by company. Save as output/roles_by_company.png.",
           "done": false,
           "skipped": false,
           "attempts": 0,
@@ -200,7 +200,7 @@
         },
         {
           "id": 22,
-          "description": "Run full pipeline on all 30+ companies (main.py all). Review output quality — check summary.md for accurate requirements comparison, charts for readability. Commit final data snapshot and all output files.",
+          "description": "Run full pipeline on all 30+ companies (main.py all). Review output quality \u2014 check summary.md for accurate requirements comparison, charts for readability. Commit final data snapshot and all output files.",
           "done": false,
           "skipped": false,
           "attempts": 0,

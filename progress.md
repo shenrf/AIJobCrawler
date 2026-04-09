@@ -39,6 +39,8 @@ Started: 2026-04-09
 
 - **Task 17**: Added `plot_degree_requirements()` to charts.py. Two-subplot figure: (1) donut chart of overall degree distribution (PhD/MS/BS/Not Specified) with percentage labels; (2) grouped bar chart comparing degree requirements across role types (Research Scientist, Applied Scientist, Research Engineer, ML Engineer, Other). Uses `degree_distribution()` and `classify_role_type()` from analyze.py. Saves to output/degree_requirements.png at 150 DPI. Wired into `main()`. Tested with synthetic data (80 roles) — renders correctly. Files: charts.py, tasks.json
 
+- **Task 18**: Added `plot_experience_requirements()` to charts.py. Two-subplot figure: (1) histogram of min_yoe across all ML/Research roles with median line; (2) box plot of min_yoe distributions for top 10 companies by YoE data points. Both subplots handle empty data gracefully. Wired into `main()`. Saves to output/experience_requirements.png at 150 DPI. Tested with synthetic data (50 roles, 11 companies) — renders correctly. Files: charts.py, tasks.json
+
 ## Known Issues
 - Cohere, Character.ai Greenhouse slugs return 404 — may have changed ATS platforms
 - Runway Lever slug (runwayml) returns 404

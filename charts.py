@@ -222,6 +222,100 @@ def plot_degree_requirements(data: list[dict[str, Any]], output_path: Path | Non
     return output_path
 
 
+def plot_experience_requirements(
+    data: list[dict[str, Any]],
+    n_companies: int = 10,
+    output_path: Path | None = None,
+) -> Path:
+    """YoE histogram (overall) + box plot of YoE ranges by top N companies.
+
+    Saved as output/experience_requirements.png.
+    """
+    if output_path is None:
+        output_path = Path(OUTPUT_DIR) / "experience_requirements.png"
+
+    # Collect min_yoe values
+    all_yoe: list[float] = [
+        float(r["min_yoe"]) for r in data if r.get("min_yoe") is not None
+    ]
+
+    # Group by company
+    from collections import defaultdict as _dd
+    company_yoe: dict[str, list[float]] = _dd(list)
+    for r in data:
+        if r.get("min_yoe") is not None:
+            company_yoe[r["company"]].append(float(r["min_yoe"]))
+
+    # Top N companies by number of YoE data points
+    top_companies = sorted(company_yoe.items(), key=lambda kv: len(kv[1]), reverse=True)[:n_companies]
+
+    fig, (ax_hist, ax_box) = plt.subplots(1, 2, figsize=(16, 6))
+
+    # ── Histogram ─────────────────────────────────────────────────────────────
+    if all_yoe:
+        max_yoe = int(max(all_yoe))
+        bins = list(range(0, max_yoe + 3))
+        ax_hist.hist(all_yoe, bins=bins, color="#4C72B0", edgecolor="white", linewidth=0.8, align="left")
+        ax_hist.set_xlabel("Minimum Years of Experience", fontsize=12)
+        ax_hist.set_ylabel("Number of Roles", fontsize=12)
+        ax_hist.set_title(
+            "YoE Distribution — All ML/Research Roles",
+            fontsize=13, fontweight="bold",
+        )
+        ax_hist.xaxis.set_major_locator(plt.MaxNLocator(integer=True))
+        ax_hist.yaxis.grid(True, linestyle="--", alpha=0.5)
+        ax_hist.set_axisbelow(True)
+        # Annotate median
+        median_val = float(np.median(all_yoe))
+        ax_hist.axvline(median_val, color="#C44E52", linewidth=1.8, linestyle="--", label=f"Median: {median_val:.1f} yrs")
+        ax_hist.legend(fontsize=10)
+    else:
+        ax_hist.text(0.5, 0.5, "No YoE data available", ha="center", va="center",
+                     fontsize=12, transform=ax_hist.transAxes)
+        ax_hist.set_title("YoE Distribution — All ML/Research Roles", fontsize=13, fontweight="bold")
+
+    # ── Box plot ──────────────────────────────────────────────────────────────
+    if top_companies:
+        box_data = [yoe_list for _, yoe_list in top_companies]
+        box_labels = [
+            f"{name}\n(n={len(yoe_list)})"
+            for name, yoe_list in top_companies
+        ]
+        bp = ax_box.boxplot(
+            box_data,
+            vert=True,
+            patch_artist=True,
+            medianprops={"color": "#C44E52", "linewidth": 2},
+        )
+        colors = plt.cm.tab10.colors  # type: ignore[attr-defined]
+        for patch, color in zip(bp["boxes"], colors):
+            patch.set_facecolor(color)
+            patch.set_alpha(0.7)
+        ax_box.set_xticks(range(1, len(box_labels) + 1))
+        ax_box.set_xticklabels(box_labels, fontsize=8.5, rotation=20, ha="right")
+        ax_box.set_ylabel("Minimum Years of Experience", fontsize=12)
+        ax_box.set_title(
+            f"YoE Ranges by Company (Top {len(top_companies)} by data points)",
+            fontsize=13, fontweight="bold",
+        )
+        ax_box.yaxis.grid(True, linestyle="--", alpha=0.5)
+        ax_box.set_axisbelow(True)
+    else:
+        ax_box.text(0.5, 0.5, "No per-company YoE data available", ha="center", va="center",
+                    fontsize=12, transform=ax_box.transAxes)
+        ax_box.set_title(
+            f"YoE Ranges by Company (Top {n_companies})",
+            fontsize=13, fontweight="bold",
+        )
+
+    fig.tight_layout(pad=3.0)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(output_path, dpi=150, bbox_inches="tight")
+    plt.close(fig)
+    print(f"Saved: {output_path}")
+    return output_path
+
+
 def main() -> None:
     """Generate all charts."""
     conn = get_connection()
@@ -230,6 +324,7 @@ def main() -> None:
     plot_top_skills(data)
     plot_company_skill_heatmap(data)
     plot_degree_requirements(data)
+    plot_experience_requirements(data)
     conn.close()
 
 
