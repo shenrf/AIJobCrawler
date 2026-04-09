@@ -35,6 +35,8 @@ Started: 2026-04-09
 
 - **Task 15**: Built charts.py — horizontal bar chart of top 20 most-demanded skills using matplotlib. `plot_top_skills()` loads requirements data via analyze.py's `top_skills()`, renders horizontal bar chart with count labels, saves to output/top_skills.png at 150 DPI. CLI entrypoint via `__main__`. Tested with synthetic data (50 roles, 20 skills) — chart renders correctly. Files: charts.py (new), tasks.json (updated)
 
+- **Task 16**: Added `plot_company_skill_heatmap()` to charts.py. Uses matplotlib imshow with YlOrRd colormap. Rows = top N companies by role count (default 15), columns = top N skills globally (default 15), cell = % of that company's roles requiring the skill. Annotates each cell with the percentage value. Saves to output/company_skill_heatmap.png at 150 DPI. Also wired into `main()`. Tested with synthetic data (60 roles, 5 companies, 10 skills) — renders correctly. Files: charts.py, tasks.json
+
 ## Known Issues
 - Cohere, Character.ai Greenhouse slugs return 404 — may have changed ATS platforms
 - Runway Lever slug (runwayml) returns 404

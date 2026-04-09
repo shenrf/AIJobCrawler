@@ -148,10 +148,10 @@
         {
           "id": 16,
           "description": "Add chart: company-vs-skill heatmap (plotly or seaborn) — rows are top 15 companies, columns are top 15 skills, cell color = % of that company's roles requiring the skill. Save as output/company_skill_heatmap.png.",
-          "done": false,
+          "done": true,
           "skipped": false,
-          "attempts": 0,
-          "duration_sec": null
+          "attempts": 1,
+          "duration_sec": 120
         },
         {
           "id": 17,
