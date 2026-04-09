@@ -185,10 +185,10 @@
         {
           "id": 20,
           "description": "Build main.py CLI with argparse: subcommands 'crawl-companies', 'crawl-jobs', 'analyze', 'charts', 'all'. Each runs the corresponding module. 'all' runs the full pipeline. Add --limit flag to cap companies crawled (for testing).",
-          "done": false,
+          "done": true,
           "skipped": false,
-          "attempts": 0,
-          "duration_sec": null
+          "attempts": 1,
+          "duration_sec": 120
         },
         {
           "id": 21,

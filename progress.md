@@ -43,6 +43,8 @@ Started: 2026-04-09
 
 - **Task 19**: Added two new charts to charts.py: (1) `plot_role_landscape_sunburst()` — interactive Plotly sunburst with hierarchy category → company → role type → top 5 skills, saved as output/role_landscape.html; (2) `plot_roles_by_company()` — matplotlib bar chart of ML/Research role count per company, saved as output/roles_by_company.png. Both wired into `main()`. Tested with synthetic data (60 roles, 5 companies) — renders correctly. Files: charts.py, tasks.json
 
+- **Task 20**: Built main.py CLI with argparse. Subcommands: crawl-companies, crawl-jobs, analyze, charts, all. --limit flag caps companies crawled. 'all' runs the full pipeline in sequence. Each subcommand wires to its module (CompanyCrawler, JobCrawler, parse_all_roles, analyze, charts). Files: main.py (new), tasks.json (updated)
+
 ## Known Issues
 - Cohere, Character.ai Greenhouse slugs return 404 — may have changed ATS platforms
 - Runway Lever slug (runwayml) returns 404
