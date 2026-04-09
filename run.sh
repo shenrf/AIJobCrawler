@@ -5,7 +5,16 @@
 set -euo pipefail
 
 export PYTHONUTF8=1
-PYTHON="C:/Users/RR/AppData/Local/Programs/Python/Python311/python.exe"
+# Find python - try multiple paths for Windows Git Bash compatibility
+for p in python python3 py "$HOME/AppData/Local/Programs/Python/Python311/python.exe"; do
+  if command -v "$p" &>/dev/null || [ -f "$p" ]; then
+    PYTHON="$p"
+    break
+  fi
+done
+if [ -z "${PYTHON:-}" ]; then
+  echo "ERROR: python not found"; exit 1
+fi
 
 PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$PROJECT_DIR"
