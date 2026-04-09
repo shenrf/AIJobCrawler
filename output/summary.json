@@ -1,0 +1,136 @@
+{
+  "company_comparison": [
+    {
+      "company": "Anthropic",
+      "role_count": 378,
+      "avg_yoe": 5.7,
+      "pct_phd": 11.9,
+      "top5_skills": [
+        "reinforcement learning",
+        "large language models",
+        "llms",
+        "kubernetes",
+        "pytorch"
+      ],
+      "pct_publications": 35.7
+    },
+    {
+      "company": "Scale AI",
+      "role_count": 75,
+      "avg_yoe": 3.8,
+      "pct_phd": 56.0,
+      "top5_skills": [
+        "llms",
+        "pytorch",
+        "tensorflow",
+        "rlhf",
+        "aws"
+      ],
+      "pct_publications": 80.0
+    },
+    {
+      "company": "Mistral AI",
+      "role_count": 27,
+      "avg_yoe": 3.6,
+      "pct_phd": 66.7,
+      "top5_skills": [
+        "pytorch",
+        "llms",
+        "jax",
+        "fine-tuning",
+        "pre-training"
+      ],
+      "pct_publications": 29.6
+    },
+    {
+      "company": "Cursor",
+      "role_count": 7,
+      "avg_yoe": null,
+      "pct_phd": 0.0,
+      "top5_skills": [
+        "kubernetes",
+        "ray"
+      ],
+      "pct_publications": 0.0
+    },
+    {
+      "company": "NVIDIA AI",
+      "role_count": 3,
+      "avg_yoe": null,
+      "pct_phd": 0.0,
+      "top5_skills": [],
+      "pct_publications": 0.0
+    }
+  ],
+  "role_type_comparison": [
+    {
+      "count": 129,
+      "avg_yoe": 6.0,
+      "pct_phd": 25.6,
+      "pct_publications": 48.8,
+      "pct_systems_skills": 27.9,
+      "top5_skills": [
+        "large language models",
+        "llms",
+        "pytorch",
+        "kubernetes",
+        "reinforcement learning"
+      ],
+      "role_type": "Research Scientist"
+    },
+    {
+      "count": 8,
+      "avg_yoe": null,
+      "pct_phd": 100.0,
+      "pct_publications": 100.0,
+      "pct_systems_skills": 0.0,
+      "top5_skills": [
+        "jax",
+        "pre-training",
+        "pytorch",
+        "multimodal",
+        "diffusion models"
+      ],
+      "role_type": "Applied Scientist"
+    },
+    {
+      "count": 282,
+      "avg_yoe": 5.1,
+      "pct_phd": 14.2,
+      "pct_publications": 40.4,
+      "pct_systems_skills": 38.7,
+      "top5_skills": [
+        "reinforcement learning",
+        "llms",
+        "large language models",
+        "pytorch",
+        "jax"
+      ],
+      "role_type": "Research Engineer"
+    },
+    {
+      "count": 70,
+      "avg_yoe": 4.2,
+      "pct_phd": 34.3,
+      "pct_publications": 25.7,
+      "pct_systems_skills": 38.6,
+      "top5_skills": [
+        "pytorch",
+        "tensorflow",
+        "aws",
+        "llms",
+        "large language models"
+      ],
+      "role_type": "ML Engineer"
+    },
+    {
+      "count": 1,
+      "avg_yoe": null,
+      "pct_phd": 0.0,
+      "pct_publications": 0.0,
+      "pct_systems_skills": 0.0,
+      "top5_skills": [],
+      "role_type": "Other"
+    }
+  ]
+}
