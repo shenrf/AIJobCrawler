@@ -45,6 +45,8 @@ Started: 2026-04-09
 
 - **Task 20**: Built main.py CLI with argparse. Subcommands: crawl-companies, crawl-jobs, analyze, charts, all. --limit flag caps companies crawled. 'all' runs the full pipeline in sequence. Each subcommand wires to its module (CompanyCrawler, JobCrawler, parse_all_roles, analyze, charts). Files: main.py (new), tasks.json (updated)
 
+- **Task 21**: End-to-end integration test — ran `python3 main.py --limit 5 all`. Pipeline completed in 74s with no crashes. Results: 42 ML/Research roles from Anthropic (first 5 companies, OpenAI/xAI return 403 so only 3 companies yielded data), 42 requirements extracted, all 6 chart files generated (top_skills.png, company_skill_heatmap.png, degree_requirements.png, experience_requirements.png, roles_by_company.png, role_landscape.html), summary.md and summary.json written. No code changes needed — pipeline works as-is. Files: tasks.json, progress.md
+
 ## Known Issues
 - Cohere, Character.ai Greenhouse slugs return 404 — may have changed ATS platforms
 - Runway Lever slug (runwayml) returns 404

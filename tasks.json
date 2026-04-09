@@ -193,10 +193,10 @@
         {
           "id": 21,
           "description": "End-to-end integration test: run main.py all --limit 5. Verify: SQLite has ML/Research roles with requirements extracted, summary.md has cross-company comparison, all chart PNGs/HTMLs exist, no crashes. Fix any issues.",
-          "done": false,
+          "done": true,
           "skipped": false,
-          "attempts": 0,
-          "duration_sec": null
+          "attempts": 1,
+          "duration_sec": 90
         },
         {
           "id": 22,
