@@ -1,12 +1,11 @@
 #!/bin/bash
 # AIJobCrawler — Overnight Batch Runner
-# Usage: nohup bash run.sh > overnight-run.log 2>&1 &
+# Usage: bash run.sh (or nohup bash run.sh > overnight-run.log 2>&1 &)
 
 set -euo pipefail
 
 export PYTHONUTF8=1
-
-# Uses Claude subscription auth (no API key needed)
+PYTHON="C:/Users/RR/AppData/Local/Programs/Python/Python311/python.exe"
 
 PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$PROJECT_DIR"
@@ -14,7 +13,6 @@ cd "$PROJECT_DIR"
 mkdir -p logs data output
 
 TASKS_FILE="tasks.json"
-LOG_FILE="overnight-run.log"
 CONSECUTIVE_SKIPS=0
 START_TIME=$(date +%s)
 
@@ -23,14 +21,13 @@ log() {
 }
 
 get_next_task() {
-  "/c/Users/RR/AppData/Local/Programs/Python/Python311/python.exe" -c "
+  $PYTHON -c "
 import json, sys
 with open('$TASKS_FILE', encoding='utf-8') as f:
     data = json.load(f)
 for phase in data['phases']:
     for task in phase['tasks']:
         if not task['done'] and not task['skipped']:
-            # Use tab as delimiter (safe for bash parsing)
             desc = task['description'].replace('\t', ' ').replace('\n', ' ')
             phase_name = phase['name'].replace('\t', ' ')
             print(f\"{task['id']}\t{phase_name}\t{desc}\")
@@ -40,7 +37,7 @@ print('ALL_DONE')
 }
 
 count_tasks() {
-  "/c/Users/RR/AppData/Local/Programs/Python/Python311/python.exe" -c "
+  $PYTHON -c "
 import json
 with open('$TASKS_FILE', encoding='utf-8') as f:
     data = json.load(f)
@@ -56,8 +53,7 @@ print(f'{done}/{total} done, {skipped} skipped')
 
 is_opus_task() {
   local task_id=$1
-  # Use opus for first and last task of each phase
-  "/c/Users/RR/AppData/Local/Programs/Python/Python311/python.exe" -c "
+  $PYTHON -c "
 import json
 with open('$TASKS_FILE', encoding='utf-8') as f:
     data = json.load(f)
@@ -85,7 +81,6 @@ while true; do
   PHASE_NAME=$(echo "$RESULT" | cut -f2)
   TASK_DESC=$(echo "$RESULT" | cut -f3)
 
-  # Pick model
   MODEL="sonnet"
   if [ "$(is_opus_task "$TASK_ID")" = "yes" ]; then
     MODEL="opus"
@@ -127,8 +122,7 @@ After completing work:
     fi
   done
 
-  # Check if task actually got marked done
-  TASK_DONE=$("/c/Users/RR/AppData/Local/Programs/Python/Python311/python.exe" -c "
+  TASK_DONE=$($PYTHON -c "
 import json
 with open('$TASKS_FILE', encoding='utf-8') as f:
     data = json.load(f)
@@ -143,8 +137,7 @@ for phase in data['phases']:
     log "Task $TASK_ID: DONE"
     CONSECUTIVE_SKIPS=0
   else
-    # Mark as skipped
-    "/c/Users/RR/AppData/Local/Programs/Python/Python311/python.exe" -c "
+    $PYTHON -c "
 import json
 with open('$TASKS_FILE', encoding='utf-8') as f:
     data = json.load(f)
@@ -153,7 +146,7 @@ for phase in data['phases']:
         if task['id'] == $TASK_ID:
             task['skipped'] = True
             task['attempts'] = 3
-with open('$TASKS_FILE', 'w') as f:
+with open('$TASKS_FILE', 'w', encoding='utf-8') as f:
     json.dump(data, f, indent=2)
 "
     log "Task $TASK_ID: SKIPPED after 3 attempts"
