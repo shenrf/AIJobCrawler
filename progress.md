@@ -25,7 +25,14 @@ Started: 2026-04-09
 
 - **Task 10**: Added WorkDay ATS parser in job_crawler.py. New `fetch_workday_jobs()` uses Workday's undocumented CXS POST API (`/wday/cxs/{tenant}/{board}/jobs`) with pagination. Added Workday detection to `_detect_ats()` — matches `{tenant}.wd{n}.myworkdayjobs.com` URLs and encodes tenant/wd_num/board into a `|`-delimited slug. Wired Workday into `crawl_company()`. Updated companies.py: NVIDIA → `nvidia.wd5.myworkdayjobs.com/en-US/NVIDIAExternalCareerSite`, AMD → `amd.wd1.myworkdayjobs.com/en-US/External`. Generic HTML fallback (existing `_extract_listings_from_html`) remains the catch-all for any other custom career pages. Files: job_crawler.py, companies.py, tasks.json
 
+- **Task 11**: E2E tested job_crawler.py + role_parser.py on 10 companies across all 4 ATS platforms (Greenhouse, Lever, Ashby, Workday). Results: 10/10 companies crawled without crashes, 81 ML/Research roles found (Anthropic 42, Scale AI 25, Mistral 13, NVIDIA 1), 0 non-ML roles leaked through filter, all FKs valid. Parsed requirements for 8/10 sampled roles (2 failed: 1 Lever timeout, 1 Workday detail page 404). Extraction quality: 88% skills, 88% degree, 75% languages, 50% YoE, 50% publications. Some ATS slugs returned 404 (Cohere, Character.ai, Runway, Together AI, Perplexity AI — likely moved platforms since companies.py was written). Files: tests/test_job_role_e2e.py (new), tasks.json (updated)
+
 ## Known Issues
+- Cohere, Character.ai Greenhouse slugs return 404 — may have changed ATS platforms
+- Runway Lever slug (runwayml) returns 404
+- Together AI, Perplexity AI Ashby slugs return 404
+- AMD Workday CXS API fails (possible endpoint change)
+- NVIDIA Workday detail page URLs return 404 (path format may differ from expected)
 (blockers, warnings, things the next session should know)
 
 ## Learnings

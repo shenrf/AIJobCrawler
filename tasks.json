@@ -98,10 +98,10 @@
         {
           "id": 11,
           "description": "Test job_crawler.py + role_parser.py end-to-end on 10 companies across ATS platforms. Verify: only ML/Research roles saved, requirements extracted correctly, data in SQLite with correct FKs. Log per-company success/fail.",
-          "done": false,
+          "done": true,
           "skipped": false,
-          "attempts": 0,
-          "duration_sec": null
+          "attempts": 1,
+          "duration_sec": 46
         }
       ]
     },
