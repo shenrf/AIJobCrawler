@@ -134,7 +134,7 @@ def _parse_wikipedia_infobox(soup: BeautifulSoup) -> dict[str, Any]:
     # Try to get a short description from the first paragraph
     content_div = soup.find("div", class_="mw-parser-output")
     if content_div and isinstance(content_div, Tag):
-        for p in content_div.find_all("p", recursive=False):
+        for p in content_div.find_all("p"):
             text = p.get_text(strip=True)
             if len(text) > 50:
                 result["description"] = text[:500]
@@ -269,6 +269,24 @@ class CompanyCrawler(BaseCrawler):
                     funding=company["funding_stage"],
                     products=", ".join(company["known_products"]),
                 )
+
+                # If homepage crawl failed entirely, try Wikipedia as sole source
+                if info is None:
+                    logger.info("Homepage crawl failed for %s — trying Wikipedia only", company["name"])
+                    wiki = _fetch_wikipedia(self.session, company["name"])
+                    if wiki:
+                        info = {
+                            "name": company["name"],
+                            "description": wiki.get("description", ""),
+                            "employee_count": wiki.get("employee_count"),
+                            "tech_stack": [],
+                            "recent_news": [],
+                            "key_people": wiki.get("key_people", []),
+                            "wiki_url": wiki.get("wiki_url"),
+                            "founded_wiki": wiki.get("founded"),
+                            "hq_wiki": wiki.get("hq"),
+                            "funding_wiki": wiki.get("funding"),
+                        }
 
                 # Update with crawled info
                 if info:

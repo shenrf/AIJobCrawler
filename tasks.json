@@ -53,10 +53,10 @@
         {
           "id": 6,
           "description": "Test company_crawler.py end-to-end on 5 companies (Anthropic, OpenAI, Mistral, Hugging Face, Scale AI). Verify data lands in SQLite correctly. Fix any parsing issues.",
-          "done": false,
+          "done": true,
           "skipped": false,
-          "attempts": 0,
-          "duration_sec": null
+          "attempts": 1,
+          "duration_sec": 180
         }
       ]
     },
