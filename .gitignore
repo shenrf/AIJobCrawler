@@ -1,0 +1,8 @@
+.env
+data/
+logs/
+output/
+*.pyc
+__pycache__/
+.overnight-pid
+overnight-run.log

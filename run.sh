@@ -6,6 +6,11 @@ set -euo pipefail
 
 export PYTHONUTF8=1
 
+# Load API key from .env if present
+if [ -f .env ]; then
+  export $(grep -v '^#' .env | xargs)
+fi
+
 PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$PROJECT_DIR"
 
