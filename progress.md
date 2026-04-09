@@ -17,6 +17,8 @@ Started: 2026-04-09
 
 - **Task 6**: E2E tested company_crawler.py on 5 companies (Anthropic, OpenAI, Mistral AI, Hugging Face, Scale AI). Fixed 2 bugs: (1) Wikipedia fallback now triggers when homepage crawl fails entirely (OpenAI returns 403), not just when data is thin; (2) Fixed Wikipedia description extraction — changed `recursive=False` to `recursive=True` on `<p>` search since Wikipedia wraps paragraphs in nested divs. All 5 companies now have descriptions (300-500 chars), employee counts, wiki URLs, and key people in SQLite. Files: company_crawler.py (2 fixes), tests/test_company_crawler_e2e.py (new)
 
+- **Task 7**: Built job_crawler.py — JobCrawler subclasses BaseCrawler. Fetches each company's careers_url, extracts job listings from HTML using heuristic link detection (looks for /jobs/, /positions/ URL patterns and role-word text). Filters to ML/Research roles only via `is_ml_role()` using ML_ROLE_KEYWORDS from config.py. Extracts team/location from surrounding HTML context. Saves matching roles to roles table via db.py. Includes `crawl_company()` (single company) and `crawl_all_companies()` (batch) methods. CLI entrypoint prints per-company role counts. Files: job_crawler.py (new), tasks.json (updated)
+
 ## Known Issues
 (blockers, warnings, things the next session should know)
 

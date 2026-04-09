@@ -66,10 +66,10 @@
         {
           "id": 7,
           "description": "Build job_crawler.py: fetch careers_url for each company, extract all job listings (title, team, location, url). Filter to ONLY ML/Research roles using ML_ROLE_KEYWORDS from config.py (match: 'machine learning', 'ml engineer', 'research engineer', 'research scientist', 'applied scientist', 'ml infrastructure', 'applied ml', 'ml scientist'). Save matching roles to roles table.",
-          "done": false,
+          "done": true,
           "skipped": false,
-          "attempts": 0,
-          "duration_sec": null
+          "attempts": 1,
+          "duration_sec": 120
         },
         {
           "id": 8,
