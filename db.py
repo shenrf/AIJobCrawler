@@ -18,6 +18,10 @@ CREATE TABLE IF NOT EXISTS companies (
     hq TEXT,
     funding TEXT,
     products TEXT,
+    description TEXT,
+    employee_count TEXT,
+    tech_stack TEXT DEFAULT '[]',
+    recent_news TEXT DEFAULT '[]',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -79,6 +83,18 @@ def insert_company(conn: sqlite3.Connection, **kwargs: Any) -> int:
         "SELECT id FROM companies WHERE name = ?", (kwargs["name"],)
     ).fetchone()
     return row["id"]
+
+
+def update_company(conn: sqlite3.Connection, company_id: int, **kwargs: Any) -> None:
+    """Update fields on an existing company row."""
+    if not kwargs:
+        return
+    set_clause = ", ".join(f"{k} = ?" for k in kwargs)
+    conn.execute(
+        f"UPDATE companies SET {set_clause} WHERE id = ?",
+        [*kwargs.values(), company_id],
+    )
+    conn.commit()
 
 
 def insert_role(conn: sqlite3.Connection, **kwargs: Any) -> int:

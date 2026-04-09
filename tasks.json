@@ -37,10 +37,10 @@
         {
           "id": 4,
           "description": "Build company_crawler.py: subclass BaseCrawler. For each company, crawl their About/homepage. Extract: description (first 500 chars of main text), employee count hints, tech stack mentions, recent news headlines. Save to companies table via db.py.",
-          "done": false,
+          "done": true,
           "skipped": false,
-          "attempts": 0,
-          "duration_sec": null
+          "attempts": 1,
+          "duration_sec": 120
         },
         {
           "id": 5,
