@@ -62,10 +62,16 @@ def get_connection(db_path: str = DB_PATH) -> sqlite3.Connection:
     return conn
 
 
-def init_db(db_path: str = DB_PATH) -> None:
+def init_db(db_path: str | sqlite3.Connection = DB_PATH) -> None:
     """Create all tables if they don't exist."""
+    if isinstance(db_path, sqlite3.Connection):
+        conn = db_path
+        conn.executescript(_SCHEMA)
+        _init_talent_tables(conn)
+        return
     conn = get_connection(db_path)
     conn.executescript(_SCHEMA)
+    _init_talent_tables(conn)
     conn.close()
 
 
@@ -141,6 +147,80 @@ def insert_requirements(
     )
     conn.commit()
     return cur.lastrowid  # type: ignore[return-value]
+
+
+# --- Talent Flow tables (Iteration 2) ---
+
+def _init_talent_tables(conn: sqlite3.Connection) -> None:
+    """Create talent_moves and company_discovery tables."""
+    conn.executescript("""
+        CREATE TABLE IF NOT EXISTS talent_moves (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            person_name TEXT NOT NULL,
+            linkedin_url TEXT UNIQUE NOT NULL,
+            previous_lab TEXT NOT NULL,
+            previous_title TEXT DEFAULT '',
+            current_company TEXT NOT NULL,
+            current_title TEXT DEFAULT '',
+            discovered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            source_query TEXT DEFAULT ''
+        );
+
+        CREATE TABLE IF NOT EXISTS company_discovery (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            company_name TEXT UNIQUE NOT NULL,
+            talent_count INTEGER DEFAULT 0,
+            talent_sources TEXT DEFAULT '{}',
+            category TEXT DEFAULT 'unknown',
+            funding TEXT DEFAULT '',
+            founded TEXT DEFAULT '',
+            hq_location TEXT DEFAULT '',
+            careers_url TEXT DEFAULT '',
+            website TEXT DEFAULT '',
+            description TEXT DEFAULT '',
+            first_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            enriched BOOLEAN DEFAULT 0,
+            added_to_pipeline BOOLEAN DEFAULT 0
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_talent_lab ON talent_moves(previous_lab);
+        CREATE INDEX IF NOT EXISTS idx_talent_company ON talent_moves(current_company);
+        CREATE INDEX IF NOT EXISTS idx_discovery_talent ON company_discovery(talent_count DESC);
+    """)
+
+
+def insert_talent_move(conn: sqlite3.Connection, move: dict) -> None:
+    """Insert a talent move, ignoring duplicates by linkedin_url."""
+    conn.execute(
+        """INSERT OR IGNORE INTO talent_moves
+           (person_name, linkedin_url, previous_lab, previous_title, current_company, current_title, source_query)
+           VALUES (:person_name, :linkedin_url, :previous_lab, :previous_title, :current_company, :current_title, :source_query)""",
+        move,
+    )
+    conn.commit()
+
+
+def insert_discovered_company(conn: sqlite3.Connection, company: dict) -> None:
+    """Insert or update a discovered company."""
+    conn.execute(
+        """INSERT OR REPLACE INTO company_discovery
+           (company_name, talent_count, talent_sources, category)
+           VALUES (:company_name, :talent_count, :talent_sources, :category)""",
+        company,
+    )
+    conn.commit()
+
+
+def get_talent_moves_by_lab(conn: sqlite3.Connection, lab: str) -> list[dict]:
+    """Get all talent moves from a specific source lab."""
+    rows = conn.execute("SELECT * FROM talent_moves WHERE previous_lab = ?", (lab,)).fetchall()
+    return [dict(r) for r in rows]
+
+
+def get_top_companies_by_talent(conn: sqlite3.Connection, limit: int = 50) -> list[dict]:
+    """Get companies ranked by talent inflow count."""
+    rows = conn.execute("SELECT * FROM company_discovery ORDER BY talent_count DESC LIMIT ?", (limit,)).fetchall()
+    return [dict(r) for r in rows]
 
 
 if __name__ == "__main__":

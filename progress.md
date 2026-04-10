@@ -51,6 +51,8 @@ Started: 2026-04-09
 
 - **Iter2 Task 1**: Added Iteration 2 talent flow config to config.py (GOOGLE_API_KEY, GOOGLE_CX from env vars, SOURCE_LABS with 20 labs and query variants, SEARCH_QUERY_TEMPLATES, SEARCH_RATE_LIMIT_DELAY=1.5). Created search_client.py with GoogleSearchClient class wrapping Google Custom Search JSON API — handles rate limiting, 429 errors, empty responses, request exceptions. Added tests/test_search_client.py with 5 mocked tests (all passing). Files: config.py (updated), search_client.py (new), tests/test_search_client.py (new), tasks_iter2.json (updated)
 
+- **Iter2 Task 2**: Added `talent_moves` and `company_discovery` tables to db.py. Added `_init_talent_tables()` function with both table schemas and indexes (idx_talent_lab, idx_talent_company, idx_discovery_talent). Added helper functions: `insert_talent_move` (INSERT OR IGNORE by linkedin_url), `insert_discovered_company` (INSERT OR REPLACE), `get_talent_moves_by_lab`, `get_top_companies_by_talent`. Modified `init_db` to accept either a path or connection and call `_init_talent_tables`. Created tests/test_db_talent.py with 4 tests (all passing). Files: db.py, tests/test_db_talent.py
+
 ## Known Issues
 - Cohere, Character.ai Greenhouse slugs return 404 — may have changed ATS platforms
 - Runway Lever slug (runwayml) returns 404
