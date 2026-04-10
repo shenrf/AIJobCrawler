@@ -36,3 +36,41 @@ COMPANY_CATEGORIES: list[str] = [
     "ai-safety",
     "ai-chip",
 ]
+
+# --- Iteration 2: Talent Flow ---
+
+GOOGLE_API_KEY: str = ""  # Set via env var GOOGLE_API_KEY
+GOOGLE_CX: str = ""       # Set via env var GOOGLE_CX (Custom Search Engine ID)
+
+SOURCE_LABS: list[dict[str, str | list[str]]] = [
+    {"name": "OpenAI", "queries": ["OpenAI"]},
+    {"name": "Anthropic", "queries": ["Anthropic"]},
+    {"name": "Google DeepMind", "queries": ["Google DeepMind", "DeepMind"]},
+    {"name": "Meta FAIR", "queries": ["Meta FAIR", "Facebook AI Research"]},
+    {"name": "xAI", "queries": ["xAI"]},
+    {"name": "Mistral", "queries": ["Mistral AI", "Mistral"]},
+    {"name": "Cohere", "queries": ["Cohere"]},
+    {"name": "AI21 Labs", "queries": ["AI21 Labs", "AI21"]},
+    {"name": "Inflection AI", "queries": ["Inflection AI", "Inflection"]},
+    {"name": "Stability AI", "queries": ["Stability AI"]},
+    {"name": "Character.ai", "queries": ["Character.ai", "Character AI"]},
+    {"name": "Adept", "queries": ["Adept AI", "Adept"]},
+    {"name": "Amazon AGI", "queries": ["Amazon AGI", "AWS AI"]},
+    {"name": "Apple ML", "queries": ["Apple Machine Learning", "Apple ML"]},
+    {"name": "Microsoft Research AI", "queries": ["Microsoft Research", "MSR AI"]},
+    {"name": "NVIDIA Research", "queries": ["NVIDIA Research", "NVIDIA AI"]},
+    {"name": "Baidu AI", "queries": ["Baidu Research", "Baidu AI"]},
+    {"name": "ByteDance AI", "queries": ["ByteDance AI", "TikTok AI"]},
+    {"name": "Samsung AI", "queries": ["Samsung AI", "Samsung Research"]},
+    {"name": "Alibaba DAMO", "queries": ["Alibaba DAMO", "DAMO Academy"]},
+]
+
+SEARCH_QUERY_TEMPLATES: list[str] = [
+    'site:linkedin.com/in "ex-{query}"',
+    'site:linkedin.com/in "formerly at {query}"',
+    'site:linkedin.com/in "{query}" "former"',
+    'site:linkedin.com/in "previously at {query}"',
+]
+
+SEARCH_RATE_LIMIT_DELAY: float = 1.5
+SEARCH_MAX_RESULTS_PER_QUERY: int = 10

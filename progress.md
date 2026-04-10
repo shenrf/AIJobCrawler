@@ -49,6 +49,8 @@ Started: 2026-04-09
 
 - **Task 22**: Ran full pipeline on all 33 companies (`python3 main.py all`). Completed in 256s. Results: 490 ML/Research roles (378 Anthropic, 75 Scale AI, 27 Mistral AI, 7 Cursor, 3 NVIDIA AI), 485 requirements parsed. All 6 charts generated (top_skills.png, company_skill_heatmap.png, degree_requirements.png, experience_requirements.png, roles_by_company.png, role_landscape.html). summary.md and summary.json exported with cross-company and role-type comparison tables. Many companies return 403/404 (OpenAI, xAI, Adept, Character.ai, Midjourney, Perplexity, AMD — expected per known issues). Committed final data snapshot and all output files. Files: tasks.json, progress.md, data/*, output/*
 
+- **Iter2 Task 1**: Added Iteration 2 talent flow config to config.py (GOOGLE_API_KEY, GOOGLE_CX from env vars, SOURCE_LABS with 20 labs and query variants, SEARCH_QUERY_TEMPLATES, SEARCH_RATE_LIMIT_DELAY=1.5). Created search_client.py with GoogleSearchClient class wrapping Google Custom Search JSON API — handles rate limiting, 429 errors, empty responses, request exceptions. Added tests/test_search_client.py with 5 mocked tests (all passing). Files: config.py (updated), search_client.py (new), tests/test_search_client.py (new), tasks_iter2.json (updated)
+
 ## Known Issues
 - Cohere, Character.ai Greenhouse slugs return 404 — may have changed ATS platforms
 - Runway Lever slug (runwayml) returns 404
