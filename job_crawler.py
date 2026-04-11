@@ -432,6 +432,60 @@ class JobCrawler(BaseCrawler):
         logger.info("Saved %d ML/Research roles for %s", saved, company["name"])
         return roles
 
+    def crawl_from_db(
+        self, conn: Any, limit: int | None = None
+    ) -> dict[str, int]:
+        """Crawl companies pulled from the `company_discovery` table.
+
+        Reads rows with a non-empty careers_url (falls back to website when
+        careers_url is blank). After a successful crawl, flips
+        `added_to_pipeline = 1` so repeated runs don't re-crawl the same row.
+        """
+        init_db()
+        sql = (
+            "SELECT company_name, website, careers_url, category "
+            "FROM company_discovery "
+            "WHERE (careers_url != '' OR website != '') "
+            "AND added_to_pipeline = 0 "
+            "ORDER BY talent_count DESC, company_name ASC"
+        )
+        if limit:
+            sql += f" LIMIT {int(limit)}"
+        rows = conn.execute(sql).fetchall()
+
+        results: dict[str, int] = {}
+        for row in rows:
+            name = row["company_name"]
+            careers = (row["careers_url"] or "").strip()
+            website = (row["website"] or "").strip()
+            url = website or careers
+            careers_url = careers or website
+            company: Company = {  # type: ignore[typeddict-item]
+                "name": name,
+                "url": url,
+                "careers_url": careers_url,
+                "category": row["category"] or "unknown",
+            }
+            try:
+                roles = self.crawl_company(company, conn)
+                results[name] = len(roles)
+                conn.execute(
+                    "UPDATE company_discovery SET added_to_pipeline = 1 "
+                    "WHERE company_name = ?",
+                    (name,),
+                )
+                conn.commit()
+            except Exception:
+                logger.exception("Failed to crawl jobs for %s", name)
+                results[name] = 0
+
+        total = sum(results.values())
+        logger.info(
+            "DB-driven job crawl complete: %d ML/Research roles across %d companies",
+            total, len(results),
+        )
+        return results
+
     def crawl_all_companies(
         self, companies: list[Company] | None = None
     ) -> dict[str, int]:

@@ -117,6 +117,45 @@ def cmd_track(args: argparse.Namespace) -> None:
     conn.close()
 
 
+def cmd_discover_companies(args: argparse.Namespace) -> None:
+    """Run pluggable discoverers (YC, HF, AI news, talent flow) into company_discovery."""
+    from discoverers import CompanyDiscoverer
+    from discoverers.runner import run_discoverers
+    from discoverers.yc import YCDiscoverer
+    from discoverers.huggingface import HuggingFaceDiscoverer
+    from discoverers.ai_news import AINewsDiscoverer
+    from discoverers.talent_flow import TalentFlowDiscoverer
+
+    conn = get_connection()
+    init_db(conn)
+
+    requested = {s.strip() for s in (args.sources or "yc,hf,ai_news").split(",") if s.strip()}
+    discoverers: list[CompanyDiscoverer] = []
+    if "yc" in requested:
+        discoverers.append(YCDiscoverer())
+    if "hf" in requested:
+        discoverers.append(HuggingFaceDiscoverer())
+    if "ai_news" in requested:
+        discoverers.append(AINewsDiscoverer())
+    if "talent_flow" in requested:
+        discoverers.append(TalentFlowDiscoverer(conn))
+
+    stats = run_discoverers(conn, discoverers, limit_per_source=args.limit)
+    print(f"Discoverer stats: {stats}")
+    conn.close()
+
+
+def cmd_crawl_jobs_from_db(args: argparse.Namespace) -> None:
+    """Crawl job listings from companies in the company_discovery table."""
+    conn = get_connection()
+    init_db(conn)
+    with JobCrawler() as crawler:
+        results = crawler.crawl_from_db(conn, limit=args.limit)
+    total = sum(results.values())
+    print(f"Found {total} ML/Research roles across {len(results)} companies.")
+    conn.close()
+
+
 def cmd_discover_all(args: argparse.Namespace) -> None:
     """Run discover + enrich + track in sequence."""
     start = time.time()
@@ -154,6 +193,22 @@ def main() -> None:
 
     subparsers.add_parser("track", help="Generate tracker.md and talent charts")
 
+    p_disc_co = subparsers.add_parser(
+        "discover-companies",
+        help="Run pluggable company discoverers (yc, hf, ai_news, talent_flow)",
+    )
+    p_disc_co.add_argument(
+        "--sources",
+        type=str,
+        default="yc,hf,ai_news",
+        help="Comma-separated source names",
+    )
+
+    subparsers.add_parser(
+        "crawl-jobs-from-db",
+        help="Crawl jobs for companies in company_discovery table",
+    )
+
     p_discover_all = subparsers.add_parser("discover-all", help="Run discover + enrich + track")
     p_discover_all.add_argument("--max-queries-per-lab", type=int, default=None, dest="max_queries_per_lab")
     p_discover_all.add_argument("--min-talent", type=int, default=2, dest="min_talent")
@@ -170,6 +225,8 @@ def main() -> None:
         "enrich": cmd_enrich,
         "track": cmd_track,
         "discover-all": cmd_discover_all,
+        "discover-companies": cmd_discover_companies,
+        "crawl-jobs-from-db": cmd_crawl_jobs_from_db,
     }
     commands[args.command](args)
 
