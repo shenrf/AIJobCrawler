@@ -53,6 +53,26 @@ Started: 2026-04-09
 
 - **Iter2 Task 2**: Added `talent_moves` and `company_discovery` tables to db.py. Added `_init_talent_tables()` function with both table schemas and indexes (idx_talent_lab, idx_talent_company, idx_discovery_talent). Added helper functions: `insert_talent_move` (INSERT OR IGNORE by linkedin_url), `insert_discovered_company` (INSERT OR REPLACE), `get_talent_moves_by_lab`, `get_top_companies_by_talent`. Modified `init_db` to accept either a path or connection and call `_init_talent_tables`. Created tests/test_db_talent.py with 4 tests (all passing). Files: db.py, tests/test_db_talent.py
 
+- **Iter2 Task 3**: Created profile_parser.py with parse_search_result(result, source_lab). Strips ' | LinkedIn' suffix, splits 'Name - Title at Company' / 'Name - Title, Company' / 'Name - Title @ Company' formats (em-dash tolerated), returns None for non-/in/ URLs. Extracts previous_title from snippet via "former/ex/previously at <lab>" regex. Tests cover all formats + edge cases (7 tests passing). Files: profile_parser.py, tests/test_profile_parser.py
+
+- **Iter2 Task 4**: Created talent_discovery.py with TalentDiscovery class. discover_lab expands SEARCH_QUERY_TEMPLATES × queries, runs GoogleSearchClient.search, parses via profile_parser, skips self-references (current_company matches source_lab), skips empty-company results, inserts via insert_talent_move. discover_all iterates SOURCE_LABS. Tracks stats (queries_run, profiles_found, profiles_stored). 5 tests passing with FakeSearchClient. Files: talent_discovery.py, tests/test_talent_discovery.py
+
+- **Iter2 Task 5**: Created company_aggregator.py with aggregate_companies(conn, min_talent=2). Groups talent_moves by (current_company, previous_lab), builds {company: {lab: count}}, inserts companies with total >= min_talent into company_discovery (UPSERT on company_name). Returns list of inserted dicts. 5 tests passing. Files: company_aggregator.py, tests/test_company_aggregator.py
+
+- **Iter2 Task 6**: Created company_enricher.py with enrich_company + enrich_all_companies. Searches `{company} AI startup funding`, extracts: category via keyword match (foundation-model/robotics/ai-infra/ai-app/ai-agent/ai-safety/ai-chip), funding via $N[M/B] regex, hq_location via known cities list, website via domain slug match. Updates company_discovery and sets enriched=1. enrich_all_companies skips enriched=1 rows. 4 tests passing. Files: company_enricher.py, tests/test_company_enricher.py
+
+- **Iter2 Task 7**: Created tracker.py with generate_tracker_md(conn, output_path). Ranks company_discovery by talent_count DESC, renders markdown table with rank/name (linked to website)/talent inflow/per-lab source breakdown/category/funding/HQ. Companies with no website AND no funding are bucketed into a separate "Stealth / Unverified" section. 5 tests passing. Files: tracker.py, tests/test_tracker.py
+
+- **Iter2 Task 8**: Created talent_charts.py with 3 functions: generate_sankey (Plotly Sankey HTML, source labs → destination companies), generate_company_ranking_bar (matplotlib horizontal bar PNG), generate_talent_heatmap (matplotlib imshow with annotated counts, PNG). Installed plotly via pip. 3 tests passing. Files: talent_charts.py, tests/test_talent_charts.py
+
+- **Iter2 Task 9**: Added iter2 subcommands to main.py: `discover` (--max-queries-per-lab, --min-talent), `enrich`, `track` (writes tracker.md + 3 charts to output/), `discover-all` (full pipeline). 5 tests passing via `python main.py <sub> --help` subprocess checks. Files: main.py, tests/test_main_iter2.py
+
+- **Iter2 Task 10**: Created pipeline.py bridging discovered companies → iter1 JobCrawler. get_companies_for_crawling (filters careers_url != '' AND added_to_pipeline = 0, ordered by talent_count DESC), mark_company_crawled (flips flag), run_full_pipeline (iterates, calls job_crawler.crawl_company, marks crawled, regenerates tracker.md + 3 charts). Injectable job_crawler for testing. 3 tests passing with StubCrawler. Files: pipeline.py, tests/test_pipeline.py
+
+- **Iter2 Task 11**: Created tests/test_e2e_iter2.py end-to-end smoke test. Uses in-memory SQLite, monkeypatches SOURCE_LABS to 2 labs, MockedSearch returns 5 fake LinkedIn results + 2 fake enrichment results. Verifies: 5 talent_moves stored, both labs represented, Sunday Robotics (3) and Stealth AI (2) aggregated, enrichment sets $50M/San Francisco on Sunday Robotics, tracker.md ranks Sunday Robotics above Stealth AI. 1 test passing. Full iter2 suite: 47 tests passing. Files: tests/test_e2e_iter2.py
+
+- **Iter2 Task 12**: Created docs/setup-google-search.md with step-by-step Google Cloud project / Custom Search API / Programmable Search Engine setup, env var instructions for Bash, PowerShell (session + persistent), and cmd.exe, free tier notes (100/day, ~80 queries per discover-all run), verification snippet, and usage command. Files: docs/setup-google-search.md
+
 ## Known Issues
 - Cohere, Character.ai Greenhouse slugs return 404 — may have changed ATS platforms
 - Runway Lever slug (runwayml) returns 404

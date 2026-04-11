@@ -4,6 +4,7 @@
 import argparse
 import sys
 import time
+from pathlib import Path
 
 from companies import COMPANIES
 from company_crawler import CompanyCrawler
@@ -11,6 +12,13 @@ from job_crawler import JobCrawler
 from role_parser import parse_all_roles
 from analyze import run_analysis, print_report
 import charts
+
+from db import get_connection, init_db
+from talent_discovery import TalentDiscovery
+from company_aggregator import aggregate_companies
+from company_enricher import enrich_all_companies
+from tracker import generate_tracker_md
+import talent_charts
 
 
 def cmd_crawl_companies(args: argparse.Namespace) -> None:
@@ -59,6 +67,65 @@ def cmd_all(args: argparse.Namespace) -> None:
     print(f"\nFull pipeline completed in {elapsed:.1f}s.")
 
 
+# --- Iteration 2: Talent Flow subcommands ---
+
+def cmd_discover(args: argparse.Namespace) -> None:
+    """Run talent discovery and aggregate into company_discovery."""
+    conn = get_connection()
+    init_db(conn)
+    td = TalentDiscovery(conn)
+    stats = td.discover_all(max_queries_per_lab=args.max_queries_per_lab)
+    print(f"Discovery stats: {stats}")
+    inserted = aggregate_companies(conn, min_talent=args.min_talent)
+    print(f"Aggregated {len(inserted)} companies with >= {args.min_talent} talent.")
+    conn.close()
+
+
+def cmd_enrich(args: argparse.Namespace) -> None:
+    """Enrich all un-enriched companies in company_discovery."""
+    conn = get_connection()
+    init_db(conn)
+    count = enrich_all_companies(conn)
+    print(f"Enriched {count} companies.")
+    conn.close()
+
+
+def cmd_track(args: argparse.Namespace) -> None:
+    """Generate tracker.md and all 3 talent charts to output/."""
+    conn = get_connection()
+    init_db(conn)
+    from config import OUTPUT_DIR
+    out_dir = Path(OUTPUT_DIR)
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    md_path = out_dir / "tracker.md"
+    generate_tracker_md(conn, md_path)
+    print(f"Wrote {md_path}")
+
+    sankey_path = out_dir / "talent_sankey.html"
+    talent_charts.generate_sankey(conn, sankey_path)
+    print(f"Wrote {sankey_path}")
+
+    bar_path = out_dir / "talent_ranking.png"
+    talent_charts.generate_company_ranking_bar(conn, bar_path)
+    print(f"Wrote {bar_path}")
+
+    heatmap_path = out_dir / "talent_heatmap.png"
+    talent_charts.generate_talent_heatmap(conn, heatmap_path)
+    print(f"Wrote {heatmap_path}")
+
+    conn.close()
+
+
+def cmd_discover_all(args: argparse.Namespace) -> None:
+    """Run discover + enrich + track in sequence."""
+    start = time.time()
+    cmd_discover(args)
+    cmd_enrich(args)
+    cmd_track(args)
+    print(f"\nTalent flow pipeline completed in {time.time() - start:.1f}s.")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         prog="aijobcrawler",
@@ -78,6 +145,19 @@ def main() -> None:
     subparsers.add_parser("charts", help="Generate all charts")
     subparsers.add_parser("all", help="Run the full pipeline")
 
+    # Iter 2: talent flow
+    p_discover = subparsers.add_parser("discover", help="Discover talent moves and aggregate companies")
+    p_discover.add_argument("--max-queries-per-lab", type=int, default=None, dest="max_queries_per_lab")
+    p_discover.add_argument("--min-talent", type=int, default=2, dest="min_talent")
+
+    subparsers.add_parser("enrich", help="Enrich discovered companies via Google search")
+
+    subparsers.add_parser("track", help="Generate tracker.md and talent charts")
+
+    p_discover_all = subparsers.add_parser("discover-all", help="Run discover + enrich + track")
+    p_discover_all.add_argument("--max-queries-per-lab", type=int, default=None, dest="max_queries_per_lab")
+    p_discover_all.add_argument("--min-talent", type=int, default=2, dest="min_talent")
+
     args = parser.parse_args()
 
     commands = {
@@ -86,6 +166,10 @@ def main() -> None:
         "analyze": cmd_analyze,
         "charts": cmd_charts,
         "all": cmd_all,
+        "discover": cmd_discover,
+        "enrich": cmd_enrich,
+        "track": cmd_track,
+        "discover-all": cmd_discover_all,
     }
     commands[args.command](args)
 
