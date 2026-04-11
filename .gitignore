@@ -7,3 +7,10 @@ __pycache__/
 .overnight-pid
 overnight-run.log
 overnight-iter2.log
+
+# Ralph loop / overnight runner scaffolding
+run.sh
+run_iter2.sh
+tasks.json
+tasks_iter2.json
+progress.md
