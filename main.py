@@ -125,11 +125,14 @@ def cmd_discover_companies(args: argparse.Namespace) -> None:
     from discoverers.huggingface import HuggingFaceDiscoverer
     from discoverers.ai_news import AINewsDiscoverer
     from discoverers.talent_flow import TalentFlowDiscoverer
+    from discoverers.github_trending import GitHubTrendingDiscoverer
+    from discoverers.curated_lists import CuratedListsDiscoverer
+    from discoverers.seed_companies import SeedCompaniesDiscoverer
 
     conn = get_connection()
     init_db(conn)
 
-    requested = {s.strip() for s in (args.sources or "yc,hf,ai_news").split(",") if s.strip()}
+    requested = {s.strip() for s in (args.sources or "seed,yc,hf,ai_news,github,curated").split(",") if s.strip()}
     discoverers: list[CompanyDiscoverer] = []
     if "yc" in requested:
         discoverers.append(YCDiscoverer())
@@ -139,9 +142,28 @@ def cmd_discover_companies(args: argparse.Namespace) -> None:
         discoverers.append(AINewsDiscoverer())
     if "talent_flow" in requested:
         discoverers.append(TalentFlowDiscoverer(conn))
+    if "github" in requested:
+        discoverers.append(GitHubTrendingDiscoverer())
+    if "curated" in requested:
+        discoverers.append(CuratedListsDiscoverer())
+    if "seed" in requested:
+        discoverers.append(SeedCompaniesDiscoverer())
 
     stats = run_discoverers(conn, discoverers, limit_per_source=args.limit)
     print(f"Discoverer stats: {stats}")
+    conn.close()
+
+
+def cmd_resolve_careers(args: argparse.Namespace) -> None:
+    """Resolve careers_url for every company in company_discovery that's missing one."""
+    from careers_resolver import resolve_careers_url, upgrade_generic_to_ats
+    conn = get_connection()
+    init_db(conn)
+    stats = resolve_careers_url(conn, limit=args.limit)
+    print(f"Careers-URL resolver: {stats}")
+    if args.upgrade_ats:
+        upgrade_stats = upgrade_generic_to_ats(conn)
+        print(f"Upgrade-to-ATS: {upgrade_stats}")
     conn.close()
 
 
@@ -204,6 +226,17 @@ def main() -> None:
         help="Comma-separated source names",
     )
 
+    p_rc = subparsers.add_parser(
+        "resolve-careers",
+        help="Resolve careers_url for companies in company_discovery (homepage scan)",
+    )
+    p_rc.add_argument(
+        "--upgrade-ats",
+        action="store_true",
+        dest="upgrade_ats",
+        help="After resolving, re-scan generic pages for embedded ATS links",
+    )
+
     subparsers.add_parser(
         "crawl-jobs-from-db",
         help="Crawl jobs for companies in company_discovery table",
@@ -227,6 +260,7 @@ def main() -> None:
         "discover-all": cmd_discover_all,
         "discover-companies": cmd_discover_companies,
         "crawl-jobs-from-db": cmd_crawl_jobs_from_db,
+        "resolve-careers": cmd_resolve_careers,
     }
     commands[args.command](args)
 

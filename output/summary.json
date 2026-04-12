@@ -43,13 +43,55 @@
       "pct_publications": 29.6
     },
     {
+      "company": "Inworld AI",
+      "role_count": 10,
+      "avg_yoe": null,
+      "pct_phd": 100.0,
+      "top5_skills": [
+        "multimodal",
+        "ray",
+        "kubernetes",
+        "quantization",
+        "cuda"
+      ],
+      "pct_publications": 50.0
+    },
+    {
       "company": "Cursor",
-      "role_count": 7,
+      "role_count": 9,
       "avg_yoe": null,
       "pct_phd": 0.0,
       "top5_skills": [
         "kubernetes",
         "ray"
+      ],
+      "pct_publications": 0.0
+    },
+    {
+      "company": "1X Technologies",
+      "role_count": 6,
+      "avg_yoe": null,
+      "pct_phd": 16.7,
+      "top5_skills": [
+        "pre-training",
+        "pytorch",
+        "triton",
+        "distributed training",
+        "quantization"
+      ],
+      "pct_publications": 16.7
+    },
+    {
+      "company": "Tractian",
+      "role_count": 4,
+      "avg_yoe": 2.7,
+      "pct_phd": 0.0,
+      "top5_skills": [
+        "sql",
+        "scikit-learn",
+        "pytorch",
+        "langchain",
+        "large language models"
       ],
       "pct_publications": 0.0
     },
@@ -60,15 +102,36 @@
       "pct_phd": 0.0,
       "top5_skills": [],
       "pct_publications": 0.0
+    },
+    {
+      "company": "Prodigal",
+      "role_count": 3,
+      "avg_yoe": null,
+      "pct_phd": 33.3,
+      "top5_skills": [],
+      "pct_publications": 0.0
+    },
+    {
+      "company": "DeepAware AI",
+      "role_count": 2,
+      "avg_yoe": null,
+      "pct_phd": 0.0,
+      "top5_skills": [
+        "tensorflow",
+        "reinforcement learning",
+        "pytorch",
+        "distributed training"
+      ],
+      "pct_publications": 0.0
     }
   ],
   "role_type_comparison": [
     {
-      "count": 129,
-      "avg_yoe": 6.0,
-      "pct_phd": 25.6,
-      "pct_publications": 48.8,
-      "pct_systems_skills": 27.9,
+      "count": 136,
+      "avg_yoe": 5.9,
+      "pct_phd": 28.7,
+      "pct_publications": 50.7,
+      "pct_systems_skills": 26.5,
       "top5_skills": [
         "large language models",
         "llms",
@@ -94,11 +157,11 @@
       "role_type": "Applied Scientist"
     },
     {
-      "count": 282,
+      "count": 297,
       "avg_yoe": 5.1,
-      "pct_phd": 14.2,
-      "pct_publications": 40.4,
-      "pct_systems_skills": 38.7,
+      "pct_phd": 14.1,
+      "pct_publications": 39.4,
+      "pct_systems_skills": 37.7,
       "top5_skills": [
         "reinforcement learning",
         "llms",
@@ -109,11 +172,11 @@
       "role_type": "Research Engineer"
     },
     {
-      "count": 70,
+      "count": 96,
       "avg_yoe": 4.2,
-      "pct_phd": 34.3,
-      "pct_publications": 25.7,
-      "pct_systems_skills": 38.6,
+      "pct_phd": 33.3,
+      "pct_publications": 20.8,
+      "pct_systems_skills": 39.6,
       "top5_skills": [
         "pytorch",
         "tensorflow",
